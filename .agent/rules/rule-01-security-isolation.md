@@ -1,3 +1,7 @@
+---
+trigger: always_on
+---
+
 ================================================================================
 rule-01-security-isolation.md
 LEI 01: Isolamento de Seguranca Smith
