@@ -64,4 +64,13 @@ We apply security analysis on every implementation step without exceptions.
 
 ---
 
+## 🔑 6. Environment Variables
+*   `NEXT_PUBLIC_SUPABASE_URL`: Supabase Project URL
+*   `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Supabase Public Key
+*   `SUPABASE_SERVICE_ROLE_KEY`: Supabase Admin Key (Never expose to client)
+*   `STRIPE_SECRET_KEY`: Chave secreta do Stripe para a API de Checkout (Assinatura Premium)
+*   `STRIPE_PRICE_ID`: O ID do Produto R$ 12,90 no painel do Stripe (`price_xxxxx`)
+
+---
+
 *Last Updated: 2026-03-21*

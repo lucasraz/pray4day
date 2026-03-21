@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useActionState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -19,7 +21,7 @@ export default function LoginPage() {
   )
 
   return (
-    <div className="min-h-screen bg-[url('/images/bg-sunset.png')] bg-cover bg-center flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-sunset flex flex-col items-center justify-center p-4 relative overflow-hidden">
       {/* Soft overlay to match picture vibe */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-white/10" />
 
@@ -28,7 +30,7 @@ export default function LoginPage() {
           <div className="mx-auto bg-amber-500/10 p-3 rounded-full w-12 h-12 flex items-center justify-center border border-amber-500/20">
             <Heart className="w-6 h-6 text-amber-600 animate-pulse" />
           </div>
-          <CardTitle className="font-serif text-3xl font-bold tracking-tight text-amber-900">
+          <CardTitle className="text-3xl font-bold tracking-tight text-amber-900">
             Ore Hoje
           </CardTitle>
           <CardDescription className="text-stone-700 font-medium">
