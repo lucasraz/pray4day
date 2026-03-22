@@ -7,10 +7,12 @@ export default function AudioRecorder() {
   const [isRecording, setIsRecording] = useState(false);
   const [audioURL, setAudioURL] = useState<string | null>(null);
   const [recordingTime, setRecordingTime] = useState(0);
+  const [countdown, setCountdown] = useState<number | null>(null);
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -19,47 +21,65 @@ export default function AudioRecorder() {
     };
   }, []);
 
-  const startRecording = async () => {
+  const handleStartClick = async () => {
     try {
+      // Pedir permissão primeiro
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-      audioChunksRef.current = [];
-
-      mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) {
-          audioChunksRef.current.push(e.data);
-        }
-      };
-
-      mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        const url = URL.createObjectURL(audioBlob);
-        setAudioURL(url);
-
-        // Attach to hidden file input so it can be sent via Server Action
-        if (fileInputRef.current) {
-          const file = new File([audioBlob], 'prayer-audio.webm', { type: 'audio/webm' });
-          const dataTransfer = new DataTransfer();
-          dataTransfer.items.add(file);
-          fileInputRef.current.files = dataTransfer.files;
-        }
-
-        // Parar os tracks para liberar o microfone
-        stream.getTracks().forEach(track => track.stop());
-      };
-
-      mediaRecorder.start();
-      setIsRecording(true);
-      setRecordingTime(0);
-
-      timerRef.current = setInterval(() => {
-        setRecordingTime((prev) => prev + 1);
+      
+      setCountdown(3);
+      countdownTimerRef.current = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev === null) return null;
+          if (prev <= 1) {
+            if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
+            startActualRecording(stream);
+            return null;
+          }
+          return prev - 1;
+        });
       }, 1000);
+      
     } catch (err) {
       console.error('Error accessing microphone:', err);
       alert('Permissão de microfone negada ou indisponível.');
     }
+  };
+
+  const startActualRecording = (stream: MediaStream) => {
+    const mediaRecorder = new MediaRecorder(stream);
+    mediaRecorderRef.current = mediaRecorder;
+    audioChunksRef.current = [];
+
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0) {
+        audioChunksRef.current.push(e.data);
+      }
+    };
+
+    mediaRecorder.onstop = () => {
+      const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+      const url = URL.createObjectURL(audioBlob);
+      setAudioURL(url);
+
+      // Attach to hidden file input so it can be sent via Server Action
+      if (fileInputRef.current) {
+        const file = new File([audioBlob], 'prayer-audio.webm', { type: 'audio/webm' });
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        fileInputRef.current.files = dataTransfer.files;
+      }
+
+      // Parar os tracks para liberar o microfone
+      stream.getTracks().forEach(track => track.stop());
+    };
+
+    mediaRecorder.start();
+    setIsRecording(true);
+    setRecordingTime(0);
+
+    timerRef.current = setInterval(() => {
+      setRecordingTime((prev) => prev + 1);
+    }, 1000);
   };
 
   const stopRecording = () => {
@@ -94,7 +114,11 @@ export default function AudioRecorder() {
 
       {!audioURL ? (
         <div className="flex items-center gap-4 bg-[#f0eeea] border border-[#e4e2de]/60 rounded-xl p-4">
-          {isRecording ? (
+          {countdown !== null ? (
+            <div className="w-12 h-12 rounded-full bg-[#fbf9f5] flex justify-center items-center shadow-inner border border-[#e4e2de]/80">
+              <span className="font-['Newsreader',serif] text-2xl font-bold text-[#042418] animate-ping">{countdown}</span>
+            </div>
+          ) : isRecording ? (
             <button 
               type="button" 
               onClick={stopRecording}
@@ -105,7 +129,7 @@ export default function AudioRecorder() {
           ) : (
             <button 
               type="button" 
-              onClick={startRecording}
+              onClick={handleStartClick}
               className="w-12 h-12 rounded-full bg-gradient-to-br from-[#042418] to-[#1b3a2c] flex justify-center items-center shadow-md hover:scale-105 transition-all"
             >
               <Mic className="w-5 h-5 text-white" />
@@ -114,10 +138,10 @@ export default function AudioRecorder() {
 
           <div className="flex flex-col flex-1">
             <span className="font-sans font-bold text-sm text-[#042418]">
-              {isRecording ? 'Gravando Oração...' : 'Toque para gravar'}
+              {countdown !== null ? 'Prepare seu coração...' : isRecording ? 'Gravando Oração...' : 'Toque para gravar'}
             </span>
             <span className="font-sans text-xs text-[#727974]">
-              {isRecording ? formatTime(recordingTime) : 'Até 2 minutos de bênçãos'}
+              {countdown !== null ? 'A gravação iniciará em breve' : isRecording ? formatTime(recordingTime) : 'Até 2 minutos de bênçãos'}
             </span>
           </div>
         </div>
