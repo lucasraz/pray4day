@@ -2,6 +2,7 @@ import { createPrayerAction } from '../actions';
 import { ChevronLeft, Lock, Youtube, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import AudioRecorder from '@/components/ui/AudioRecorder';
+import ThemeSelector from './ThemeSelector';
 import { getUserPrayerLimits } from '../../../../../execution/original_prayers_repository';
 
 export default async function CreateOriginalPrayerPage() {
@@ -48,23 +49,10 @@ export default async function CreateOriginalPrayerPage() {
 
           {/* Theme select */}
           <div className="flex flex-col gap-2">
-            <label htmlFor="theme" className="text-sm font-sans font-bold text-[#042418]">
-              Tema
+            <label htmlFor="theme_dropdown" className="text-sm font-sans font-bold text-[#042418]">
+              Categoria
             </label>
-            <select
-              id="theme"
-              name="theme"
-              required
-              defaultValue=""
-              disabled={!limits.canCreate}
-              className="w-full bg-white border border-[#e4e2de] rounded-xl px-4 py-3 text-sm font-sans text-[#1b1c1a] focus:outline-none focus:border-[#775a19] focus:ring-1 focus:ring-[#775a19] transition-all appearance-none disabled:opacity-50"
-            >
-              <option value="" disabled className="text-[#727974]">Selecione um tema...</option>
-              <option value="Ansiedade">Ansiedade</option>
-              <option value="Família">Família</option>
-              <option value="Prosperidade">Prosperidade</option>
-              <option value="Provação">Provação</option>
-            </select>
+            <ThemeSelector disabled={!limits.canCreate} />
           </div>
 
           {/* Content textarea */}
