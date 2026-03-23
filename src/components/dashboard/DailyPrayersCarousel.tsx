@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Heart, Feather, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Heart, Feather, ChevronLeft, ChevronRight, MessageCircle } from 'lucide-react';
 import { OriginalPrayer } from '../../../execution/original_prayers_repository';
 
 interface DailyPrayersCarouselProps {
@@ -92,13 +92,21 @@ export default function DailyPrayersCarousel({ prayers }: DailyPrayersCarouselPr
                 <p className="text-white/75 font-sans text-sm mt-2 line-clamp-2 leading-relaxed">
                   {prayer.content}
                 </p>
-                {/* Likes */}
-                {(prayer.likes_count ?? 0) > 0 && (
-                  <div className="flex items-center gap-1.5 mt-3">
-                    <Heart className="w-3.5 h-3.5 text-[#ffdea5]" fill="#ffdea5" />
-                    <span className="text-[#ffdea5] text-xs font-sans font-bold">{prayer.likes_count}</span>
-                  </div>
-                )}
+                {/* Likes e Comentários */}
+                <div className="flex items-center gap-4 mt-3">
+                  {(prayer.likes_count ?? 0) > 0 && (
+                    <div className="flex items-center gap-1.5">
+                      <Heart className="w-3.5 h-3.5 text-[#ffdea5]" fill="#ffdea5" />
+                      <span className="text-[#ffdea5] text-xs font-sans font-bold">{prayer.likes_count}</span>
+                    </div>
+                  )}
+                  {(prayer.comments_count ?? 0) > 0 && (
+                    <div className="flex items-center gap-1.5">
+                      <MessageCircle className="w-3.5 h-3.5 text-white/60" />
+                      <span className="text-white/80 text-xs font-sans font-bold">{prayer.comments_count}</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 

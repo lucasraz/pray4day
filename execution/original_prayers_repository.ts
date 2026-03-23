@@ -12,6 +12,7 @@ export interface OriginalPrayer {
   duration: number;
   created_at: string;
   likes_count?: number;
+  comments_count?: number;
   has_liked?: boolean;
   has_favorited?: boolean;
   is_author?: boolean;
@@ -32,7 +33,8 @@ export async function getOriginalPrayers(filters?: { theme?: string; keyword?: s
     .from('original_prayers')
     .select(`
       *,
-      likes_original_prayers(user_id)
+      likes_original_prayers(user_id),
+      comments_original_prayers(id)
     `);
 
   if (filters?.theme) {
@@ -53,9 +55,11 @@ export async function getOriginalPrayers(filters?: { theme?: string; keyword?: s
   // 3. Formatar dados incluindo total de likes e flag has_liked
   const formattedData: OriginalPrayer[] = (data || []).map((p: any) => {
     const likes = p.likes_original_prayers || [];
+    const comments = p.comments_original_prayers || [];
     return {
       ...p,
       likes_count: likes.length,
+      comments_count: comments.length,
       has_liked: likes.some((l: any) => l.user_id === currentUserId),
       is_author: p.user_id === currentUserId
     };
@@ -79,7 +83,8 @@ export async function getOriginalPrayerById(id: string) {
     .select(`
       *,
       likes_original_prayers(user_id),
-      favorite_prayers(user_id)
+      favorite_prayers(user_id),
+      comments_original_prayers(id)
     `)
     .eq('id', id)
     .single();
@@ -91,14 +96,16 @@ export async function getOriginalPrayerById(id: string) {
 
   const likes = data.likes_original_prayers || [];
   const favs = data.favorite_prayers || [];
+  const comments = data.comments_original_prayers || [];
 
   return {
     ...data,
     likes_count: likes.length,
+    comments_count: comments.length,
     has_liked: likes.some((l: any) => l.user_id === currentUserId),
     has_favorited: favs.some((f: any) => f.user_id === currentUserId),
     is_author: data.user_id === currentUserId
-  } as OriginalPrayer & { likes_count: number; has_liked: boolean; has_favorited: boolean; is_author: boolean };
+  } as OriginalPrayer & { likes_count: number; comments_count: number; has_liked: boolean; has_favorited: boolean; is_author: boolean };
 }
 
 /**
@@ -376,7 +383,8 @@ export async function getDailyPrayer(userId: string): Promise<OriginalPrayer | n
     .from('original_prayers')
     .select(`
       id, user_id, title, theme, content, image_url, audio_url, youtube_url, duration, created_at,
-      likes_original_prayers(user_id)
+      likes_original_prayers(user_id),
+      comments_original_prayers(id)
     `)
     .order('created_at', { ascending: true }); // ordem consistente
 
@@ -393,9 +401,11 @@ export async function getDailyPrayer(userId: string): Promise<OriginalPrayer | n
   const prayer = data[index] as any;
 
   const likes = prayer.likes_original_prayers || [];
+  const comments = prayer.comments_original_prayers || [];
   return {
     ...prayer,
     likes_count: likes.length,
+    comments_count: comments.length,
     has_liked: likes.some((l: any) => l.user_id === userId),
     image_url: prayer.image_url || null,
   } as OriginalPrayer;
@@ -412,7 +422,8 @@ export async function getDailyPrayersList(userId: string, limit = 4): Promise<Or
     .from('original_prayers')
     .select(`
       id, user_id, title, theme, content, image_url, audio_url, youtube_url, duration, created_at,
-      likes_original_prayers(user_id)
+      likes_original_prayers(user_id),
+      comments_original_prayers(id)
     `)
     .order('created_at', { ascending: true });
 
@@ -439,15 +450,17 @@ export async function getDailyPrayersList(userId: string, limit = 4): Promise<Or
   const prayers: OriginalPrayer[] = [];
 
   // 3. Selecionar 1 oração determinística de cada tema
-  for (const theme of availableThemes) {
+    for (const theme of availableThemes) {
     const bucket = themeBuckets[theme];
     const subIndex = (daysSinceEpoch + userHash) % bucket.length;
     const p = bucket[subIndex];
     const likes = p.likes_original_prayers || [];
+    const comments = p.comments_original_prayers || [];
 
     prayers.push({
       ...p,
       likes_count: likes.length,
+      comments_count: comments.length,
       has_liked: likes.some((l: any) => l.user_id === userId),
       image_url: p.image_url || null,
     } as OriginalPrayer);

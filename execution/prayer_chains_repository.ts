@@ -34,6 +34,7 @@ export interface PrayerChain {
   creator_avatar?: string;     // avatar do criador
   prayer_chain_items?: PrayerChainItem[];
   participant_count?: number;
+  comments_count?: number;
   has_joined?: boolean;
 }
 
@@ -74,7 +75,8 @@ export async function getPrayerChains(): Promise<PrayerChain[]> {
         predefined_prayer_id, custom_prayer_name,
         predefined_prayers (id, name, category)
       ),
-      prayer_chain_participants (user_id)
+      prayer_chain_participants (user_id),
+      comments_prayer_chains (id)
     `)
     .eq('is_active', true)
     .order('created_at', { ascending: false });
@@ -109,6 +111,7 @@ export async function getPrayerChains(): Promise<PrayerChain[]> {
       creator_name: creatorName,
       creator_avatar: profile?.avatar_url || null,
       participant_count: chain.prayer_chain_participants?.length ?? 0,
+      comments_count: chain.comments_prayer_chains?.length ?? 0,
       has_joined: userId ? chain.prayer_chain_participants?.some((p: any) => p.user_id === userId) : false,
       prayer_chain_participants: undefined,
     };
@@ -132,7 +135,8 @@ export async function getPrayerChainById(id: string): Promise<PrayerChain | null
         predefined_prayer_id, custom_prayer_name, custom_prayer_text,
         predefined_prayers (id, name, category, content)
       ),
-      prayer_chain_participants (user_id)
+      prayer_chain_participants (user_id),
+      comments_prayer_chains (id)
     `)
     .eq('id', id)
     .single();
@@ -146,6 +150,7 @@ export async function getPrayerChainById(id: string): Promise<PrayerChain | null
   return {
     ...chain,
     participant_count: chain.prayer_chain_participants?.length ?? 0,
+    comments_count: chain.comments_prayer_chains?.length ?? 0,
     has_joined: userId ? chain.prayer_chain_participants?.some((p: any) => p.user_id === userId) : false,
     prayer_chain_participants: undefined,
   } as PrayerChain;
