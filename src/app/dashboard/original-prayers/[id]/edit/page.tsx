@@ -36,7 +36,7 @@ export default async function EditOriginalPrayerPage({
 
       {/* Form Content */}
       <div className="p-6 flex-1 flex flex-col gap-6 w-full max-w-md mx-auto">
-        <form action={updateOriginalPrayerAction} encType="multipart/form-data" className="flex flex-col gap-6 w-full">
+        <form action={updateOriginalPrayerAction} className="flex flex-col gap-6 w-full">
           <input type="hidden" name="prayerId" value={prayer.id} />
           
           {/* Title input */}

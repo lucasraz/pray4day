@@ -24,6 +24,10 @@ export async function getDailyVerse() {
     return (dailyVerseEntry.verses as unknown) as Verse
   }
 
+  if (fetchError && fetchError.code !== 'PGRST116') {
+    console.error('Erro ao buscar versículo do dia:', fetchError.message)
+  }
+
   // 2. Se não houver, precisamos escolher um novo
   // Busca versículos que nunca foram usados ou há mais tempo
   const { data: pickedVerse, error: pickError } = await supabase
@@ -80,7 +84,7 @@ export async function getDailyVerse() {
       .upsert({ date: today, verse_id: nextVerse.id }, { onConflict: 'date' }) // Upsert para evitar erro de concorrência
 
     if (insertError) {
-      console.error('Erro ao salvar versículo do dia:', insertError)
+      console.error('Erro ao salvar versículo do dia:', insertError.message || insertError)
     }
 
     return nextVerse

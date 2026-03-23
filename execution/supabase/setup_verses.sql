@@ -23,6 +23,9 @@ ALTER TABLE public.verses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.verse_of_the_day ENABLE ROW LEVEL SECURITY;
 
 -- 4. Políticas
+DROP POLICY IF EXISTS "Permitir leitura pública de versículos" ON public.verses;
+DROP POLICY IF EXISTS "Permitir leitura pública de versículo do dia" ON public.verse_of_the_day;
+
 CREATE POLICY "Permitir leitura pública de versículos" ON public.verses FOR SELECT TO authenticated USING (true);
 CREATE POLICY "Permitir leitura pública de versículo do dia" ON public.verse_of_the_day FOR SELECT TO authenticated USING (true);
 
