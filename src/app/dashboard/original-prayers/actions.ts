@@ -41,7 +41,7 @@ export async function createPrayerAction(formData: FormData) {
     const { data: userData } = await supabase.auth.getUser();
     const userId = userData.user?.id;
 
-    if (audioFile && audioFile.size > 0) {
+    if (audioFile && typeof audioFile !== 'string' && audioFile.size > 0) {
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.webm`;
       const { data, error } = await supabase.storage.from('prayers-audio').upload(fileName, audioFile);
       
@@ -53,9 +53,8 @@ export async function createPrayerAction(formData: FormData) {
       }
     }
 
-    if (imageFile && imageFile.size > 0 && userId) {
-      const fileExt = imageFile.name.split('.').pop();
-      // Formato: userId/timestamp-random.ext para apoiar políticas de RLS de folder_name
+    if (imageFile && typeof imageFile !== 'string' && imageFile.size > 0 && userId) {
+      const fileExt = imageFile.name ? imageFile.name.split('.').pop() : 'jpg';
       const fileName = `${userId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
       const { data, error } = await supabase.storage.from('prayers-images').upload(fileName, imageFile);
       
@@ -133,8 +132,8 @@ export async function updateOriginalPrayerAction(formData: FormData) {
     const { data: userData } = await supabase.auth.getUser();
     const userId = userData.user?.id;
 
-    if (imageFile && imageFile.size > 0 && userId) {
-      const fileExt = imageFile.name.split('.').pop();
+    if (imageFile && typeof imageFile !== 'string' && imageFile.size > 0 && userId) {
+      const fileExt = imageFile.name ? imageFile.name.split('.').pop() : 'jpg';
       const fileName = `${userId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
       const { data, error } = await supabase.storage.from('prayers-images').upload(fileName, imageFile);
       

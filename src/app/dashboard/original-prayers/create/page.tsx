@@ -22,7 +22,7 @@ export default async function CreateOriginalPrayerPage() {
 
       {/* Form Content */}
       <div className="p-6 flex-1 flex flex-col gap-6 w-full max-w-md mx-auto">
-        <form action={createPrayerAction} className="flex flex-col gap-6 w-full">
+        <form action={createPrayerAction} encType="multipart/form-data" className="flex flex-col gap-6 w-full">
           
           {/* Status Bar */}
           <div className="bg-[#f0eeea] rounded-xl p-3 flex justify-between items-center px-4 border border-[#e4e2de]/60">

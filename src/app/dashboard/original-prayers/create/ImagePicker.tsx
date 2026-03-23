@@ -9,8 +9,8 @@ export default function ImagePicker({ disabled }: { disabled?: boolean }) {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        alert('A imagem deve ter no máximo 5MB');
+      if (file.size > 3.5 * 1024 * 1024) {
+        alert('A imagem deve ter no máximo 3.5MB para evitar falhas de rede');
         if (fileInputRef.current) fileInputRef.current.value = '';
         return;
       }
