@@ -31,6 +31,8 @@ export interface PrayerChain {
   is_active: boolean;
   created_at: string;
   prayer_chain_items?: PrayerChainItem[];
+  participant_count?: number;
+  has_joined?: boolean;
 }
 
 /**
@@ -52,10 +54,13 @@ export async function getPredefinedPrayers(): Promise<PredefinedPrayer[]> {
 }
 
 /**
- * Busca todas as correntes de oração (feed público)
+ * Busca todas as correntes de oração (feed público) com contagem de participantes
  */
 export async function getPrayerChains(): Promise<PrayerChain[]> {
   const supabase = await createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  const userId = userData.user?.id;
+
   const { data, error } = await supabase
     .from('prayer_chains')
     .select(`
@@ -64,7 +69,8 @@ export async function getPrayerChains(): Promise<PrayerChain[]> {
         id, quantity, order_index,
         predefined_prayer_id, custom_prayer_name,
         predefined_prayers (id, name, category)
-      )
+      ),
+      prayer_chain_participants (user_id)
     `)
     .eq('is_active', true)
     .order('created_at', { ascending: false });
@@ -73,14 +79,23 @@ export async function getPrayerChains(): Promise<PrayerChain[]> {
     console.error('Erro ao buscar correntes:', error.message);
     return [];
   }
-  return data as PrayerChain[];
+
+  return (data as any[]).map(chain => ({
+    ...chain,
+    participant_count: chain.prayer_chain_participants?.length ?? 0,
+    has_joined: userId ? chain.prayer_chain_participants?.some((p: any) => p.user_id === userId) : false,
+    prayer_chain_participants: undefined, // limpa do retorno
+  })) as PrayerChain[];
 }
 
 /**
- * Busca uma corrente específica pelo ID
+ * Busca uma corrente específica pelo ID com contagem de participantes
  */
 export async function getPrayerChainById(id: string): Promise<PrayerChain | null> {
   const supabase = await createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  const userId = userData.user?.id;
+
   const { data, error } = await supabase
     .from('prayer_chains')
     .select(`
@@ -89,7 +104,8 @@ export async function getPrayerChainById(id: string): Promise<PrayerChain | null
         id, quantity, order_index,
         predefined_prayer_id, custom_prayer_name, custom_prayer_text,
         predefined_prayers (id, name, category, content)
-      )
+      ),
+      prayer_chain_participants (user_id)
     `)
     .eq('id', id)
     .single();
@@ -98,7 +114,46 @@ export async function getPrayerChainById(id: string): Promise<PrayerChain | null
     console.error('Erro ao buscar corrente:', error?.message);
     return null;
   }
-  return data as PrayerChain;
+
+  const chain = data as any;
+  return {
+    ...chain,
+    participant_count: chain.prayer_chain_participants?.length ?? 0,
+    has_joined: userId ? chain.prayer_chain_participants?.some((p: any) => p.user_id === userId) : false,
+    prayer_chain_participants: undefined,
+  } as PrayerChain;
+}
+
+/**
+ * Aderir a uma corrente
+ */
+export async function joinPrayerChain(chainId: string): Promise<boolean> {
+  const supabase = await createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) return false;
+
+  const { error } = await supabase
+    .from('prayer_chain_participants')
+    .insert({ chain_id: chainId, user_id: userData.user.id });
+
+  return !error;
+}
+
+/**
+ * Sair de uma corrente
+ */
+export async function leavePrayerChain(chainId: string): Promise<boolean> {
+  const supabase = await createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) return false;
+
+  const { error } = await supabase
+    .from('prayer_chain_participants')
+    .delete()
+    .eq('chain_id', chainId)
+    .eq('user_id', userData.user.id);
+
+  return !error;
 }
 
 /**

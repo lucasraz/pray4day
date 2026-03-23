@@ -1,8 +1,8 @@
 import { getPrayerChainById } from '../../../../../execution/prayer_chains_repository';
-import { ChevronLeft, Clock, Calendar, Trash2 } from 'lucide-react';
+import { ChevronLeft, Clock, Calendar, Trash2, Users } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { deletePrayerChainAction } from '../actions';
+import { deletePrayerChainAction, joinPrayerChainAction, leavePrayerChainAction } from '../actions';
 import PrayerItemAccordion from './PrayerItemAccordion';
 import { createClient } from '@/lib/supabase/server';
 
@@ -25,6 +25,8 @@ export default async function PrayerChainDetailsPage({
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   const isAuthor = user?.id === chain.user_id;
+  const hasJoined = chain.has_joined ?? false;
+  const participantCount = chain.participant_count ?? 0;
 
   const periodicityLabel = chain.periodicity.includes('daily')
     ? 'Todos os dias'
@@ -85,8 +87,31 @@ export default async function PrayerChainDetailsPage({
                 </span>
               </div>
             )}
+            <div className="flex items-center gap-2 pt-1">
+              <Users className="w-4 h-4 text-[#775a19]" />
+              <span className="text-sm font-sans">
+                <strong className="text-[#042418]">{participantCount}</strong>
+                {' '}{participantCount === 1 ? 'pessoa participando' : 'pessoas participando'}
+              </span>
+            </div>
           </div>
         </div>
+
+        {/* Botão de Aderir / Sair */}
+        {!isAuthor && (
+          <form action={hasJoined ? leavePrayerChainAction : joinPrayerChainAction}>
+            <input type="hidden" name="chainId" value={chain.id} />
+            <button type="submit"
+              className={`w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-sans font-bold text-sm shadow-sm active:scale-[0.98] transition-all ${
+                hasJoined
+                  ? 'bg-[#f0eeea] text-[#727974] border border-[#e4e2de]'
+                  : 'bg-gradient-to-br from-[#042418] to-[#1b3a2c] text-white shadow-md hover:shadow-lg'
+              }`}>
+              <Users className="w-5 h-5" />
+              {hasJoined ? 'Sair da Corrente' : 'Participar da Corrente'}
+            </button>
+          </form>
+        )}
 
         {/* Lista de Orações */}
         <div className="flex flex-col gap-2">

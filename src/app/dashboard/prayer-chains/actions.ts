@@ -1,7 +1,7 @@
 'use server'
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { createPrayerChain, deletePrayerChain } from '../../../../execution/prayer_chains_repository';
+import { createPrayerChain, deletePrayerChain, joinPrayerChain, leavePrayerChain } from '../../../../execution/prayer_chains_repository';
 
 export async function createPrayerChainAction(formData: FormData) {
   const title = (formData.get('title') as string)?.trim();
@@ -57,4 +57,20 @@ export async function deletePrayerChainAction(formData: FormData) {
 
   revalidatePath('/dashboard/prayer-chains');
   redirect('/dashboard/prayer-chains');
+}
+
+export async function joinPrayerChainAction(formData: FormData) {
+  const chainId = formData.get('chainId') as string;
+  if (!chainId) return;
+  await joinPrayerChain(chainId);
+  revalidatePath(`/dashboard/prayer-chains/${chainId}`);
+  revalidatePath('/dashboard/prayer-chains');
+}
+
+export async function leavePrayerChainAction(formData: FormData) {
+  const chainId = formData.get('chainId') as string;
+  if (!chainId) return;
+  await leavePrayerChain(chainId);
+  revalidatePath(`/dashboard/prayer-chains/${chainId}`);
+  revalidatePath('/dashboard/prayer-chains');
 }

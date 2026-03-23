@@ -1,5 +1,5 @@
 import { getPrayerChains } from '../../../../execution/prayer_chains_repository';
-import { ChevronLeft, Plus, Clock, Calendar, Link2 } from 'lucide-react';
+import { ChevronLeft, Plus, Clock, Calendar, Link2, Users } from 'lucide-react';
 import Link from 'next/link';
 
 const WEEKDAY_LABELS: Record<string, string> = {
@@ -107,11 +107,10 @@ export default async function PrayerChainsPage() {
                     <Calendar className="w-3.5 h-3.5" />
                     <span className="text-xs font-sans">{periodicityLabel}</span>
                   </div>
-                  {chain.end_date && (
-                    <span className="text-[#775a19] text-xs font-sans ml-auto">
-                      até {new Date(chain.end_date + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
-                    </span>
-                  )}
+                  <div className="flex items-center gap-1 ml-auto">
+                    <Users className="w-3.5 h-3.5 text-[#775a19]" />
+                    <span className="text-xs font-sans font-bold text-[#775a19]">{chain.participant_count ?? 0}</span>
+                  </div>
                 </div>
               </Link>
             );
