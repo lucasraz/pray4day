@@ -2,6 +2,7 @@ import { getOriginalPrayers } from '../../../../execution/original_prayers_repos
 import { Heart, MessageSquare, Play, Plus, Search } from 'lucide-react';
 import Link from 'next/link';
 import { likePrayerAction } from './actions';
+import PrayerCardFeed from './PrayerCardFeed';
 
 export default async function OriginalPrayersPage({
   searchParams,
@@ -63,55 +64,7 @@ export default async function OriginalPrayersPage({
             Nenhuma oração encontrada. Seja o primeiro a criar!
           </div>
         ) : (
-          prayers.map((prayer) => (
-            <div key={prayer.id} className="relative bg-white border border-[#e4e2de]/30 rounded-2xl p-4 shadow-sm flex flex-col gap-3 overflow-hidden">
-              {/* Imagem de fundo sutil (Efeito marca d'água) */}
-              {prayer.image_url && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img 
-                  src={prayer.image_url} 
-                  alt="" 
-                  className="absolute inset-0 w-full h-full object-cover opacity-[0.08] mix-blend-multiply pointer-events-none" 
-                />
-              )}
-              
-              {/* Top Details */}
-              <div className="flex justify-between items-start">
-                <Link href={`/dashboard/original-prayers/${prayer.id}`} className="group-hover:opacity-80 transition-opacity">
-                  <span className="text-[10px] uppercase font-bold text-[#775a19] tracking-wide">{prayer.theme}</span>
-                  <h3 className="text-display font-display font-medium text-lg text-[#042418] group-hover:underline underline-offset-4 decoration-[#775a19]/40">{prayer.title}</h3>
-                </Link>
-                {prayer.audio_url && (
-                  <div className="w-8 h-8 rounded-full bg-[#042418] flex items-center justify-center cursor-pointer shadow-md">
-                    <Play className="w-3 h-3 fill-white text-white translate-x-[1px]" />
-                  </div>
-                )}
-              </div>
-
-              {/* Text Context Content */}
-              <Link href={`/dashboard/original-prayers/${prayer.id}`} className="group-hover:opacity-80 transition-opacity">
-                <p className="text-[#1b1c1a] font-sans text-sm leading-relaxed line-clamp-3">
-                  {prayer.content}
-                </p>
-              </Link>
-
-              {/* Bottom Actions Footer */}
-              <div className="flex justify-between items-center mt-2 pt-3 border-t border-[#e4e2de]/30">
-                <form action={likePrayerAction}>
-                  <input type="hidden" name="prayerId" value={prayer.id} />
-                  <button type="submit" className="flex items-center gap-1.5 text-[#727974] hover:text-[#ba1a1a] transition-all">
-                    <Heart className={`w-4 h-4 ${prayer.has_liked ? 'fill-[#ba1a1a] text-[#ba1a1a]' : ''}`} />
-                    <span className="text-xs font-bold">{prayer.likes_count || 0}</span>
-                  </button>
-                </form>
-
-                <button className="flex items-center gap-1.5 text-[#727974] hover:text-[#042418] transition-all">
-                  <MessageSquare className="w-4 h-4" />
-                  <span className="text-xs font-bold">Ouvir</span>
-                </button>
-              </div>
-            </div>
-          ))
+          <PrayerCardFeed prayers={prayers} likeAction={likePrayerAction} />
         )}
       </div>
 

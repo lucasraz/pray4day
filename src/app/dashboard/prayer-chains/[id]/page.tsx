@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { deletePrayerChainAction, joinPrayerChainAction, leavePrayerChainAction } from '../actions';
 import PrayerItemAccordion from './PrayerItemAccordion';
 import { createClient } from '@/lib/supabase/server';
+import CommentsSection from '@/components/dashboard/CommentsSection';
 
 const WEEKDAY_LABELS: Record<string, string> = {
   daily: 'Todos os dias',
@@ -135,6 +136,10 @@ export default async function PrayerChainDetailsPage({
             })
           )}
         </div>
+
+        {/* 📚 Comentários da Corrente */}
+        <CommentsSection chainId={chain.id} />
+        
       </div>
     </div>
   );

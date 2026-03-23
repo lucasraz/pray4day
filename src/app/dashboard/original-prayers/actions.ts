@@ -189,3 +189,9 @@ export async function updateOriginalPrayerAction(formData: FormData) {
   revalidatePath('/dashboard/original-prayers');
   redirect(`/dashboard/original-prayers/${prayerId}`);
 }
+
+export async function getCommentsAction(prayerId: string) {
+  if (!prayerId) return [];
+  const { getCommentsForPrayer } = await import('../../../../execution/comments_repository');
+  return await getCommentsForPrayer(prayerId);
+}

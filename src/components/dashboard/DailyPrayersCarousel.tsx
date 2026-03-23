@@ -5,8 +5,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Heart, Feather, ChevronLeft, ChevronRight, MessageCircle, Sparkles } from 'lucide-react';
 import { OriginalPrayer } from '../../../execution/original_prayers_repository';
-import { CommentItem } from '../../../execution/comments_repository';
-import { addCommentAction } from '../../app/dashboard/original-prayers/actions';
+import { CommentItem } from '../../../execution/comments_types';
+import { addCommentAction, getCommentsAction } from '../../app/dashboard/original-prayers/actions';
 
 interface DailyPrayersCarouselProps {
   prayers: OriginalPrayer[];
@@ -26,13 +26,11 @@ export default function DailyPrayersCarousel({ prayers }: DailyPrayersCarouselPr
     let isMounted = true;
     if (activeCommentsPrayer) {
       setLoadingComments(true);
-      import('../../../execution/comments_repository').then(({ getCommentsForPrayer }) => {
-         getCommentsForPrayer(activeCommentsPrayer.id).then((list) => {
-            if (isMounted) {
-               setCommentsList(list);
-               setLoadingComments(false);
-            }
-         });
+      getCommentsAction(activeCommentsPrayer.id).then((list) => {
+         if (isMounted) {
+            setCommentsList(list);
+            setLoadingComments(false);
+         }
       });
     } else {
        setCommentsList([]);
@@ -48,9 +46,7 @@ export default function DailyPrayersCarousel({ prayers }: DailyPrayersCarouselPr
        return;
     }
     setNewComment('');
-    import('../../../execution/comments_repository').then(({ getCommentsForPrayer }) => {
-       getCommentsForPrayer(activeCommentsPrayer.id).then(setCommentsList);
-    });
+    getCommentsAction(activeCommentsPrayer.id).then(setCommentsList);
   };
 
   const handleScroll = () => {

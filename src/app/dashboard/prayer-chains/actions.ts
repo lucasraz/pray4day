@@ -67,6 +67,23 @@ export async function joinPrayerChainAction(formData: FormData) {
   revalidatePath('/dashboard/prayer-chains');
 }
 
+export async function getChainCommentsAction(chainId: string) {
+  if (!chainId) return [];
+  const { getCommentsForChain } = await import('../../../../execution/comments_repository');
+  return await getCommentsForChain(chainId);
+}
+
+export async function addChainCommentAction(chainId: string, content: string) {
+  if (!chainId || !content.trim()) return { error: 'Conteúdo vazio' };
+
+  const { addCommentToChain } = await import('../../../../execution/comments_repository');
+  const result = await addCommentToChain(chainId, content);
+  
+  if (!result.error) {
+    revalidatePath(`/dashboard/prayer-chains/${chainId}`);
+  }
+  return result;
+}
 export async function leavePrayerChainAction(formData: FormData) {
   const chainId = formData.get('chainId') as string;
   if (!chainId) return;
