@@ -45,10 +45,10 @@ export default async function DashboardPage() {
   return (
     <div className="flex flex-col min-h-full pb-28">
       {/* Header - com Avatar e Nome */}
-      <div className="flex justify-between items-center bg-[#fbf9f5]/90 backdrop-blur-md sticky top-0 px-5 pt-5 pb-4 z-20 border-b border-[#c1c8c2]/10">
+      <div className="relative flex items-center bg-[#fbf9f5]/90 backdrop-blur-md sticky top-0 px-5 pt-5 pb-4 z-20 border-b border-[#c1c8c2]/10">
         
-        {/* Avatar do usuário com link para o perfil */}
-        <Link href="/dashboard/profile" className="flex items-center gap-2.5 group">
+        {/* Avatar do usuário - lado esquerdo */}
+        <Link href="/dashboard/profile" className="flex items-center gap-2.5 group z-10">
           <div className="w-9 h-9 bg-gradient-to-br from-[#042418] to-[#1b3a2c] rounded-full overflow-hidden border border-[#e4e2de]/60 shadow-sm group-hover:scale-105 transition-all flex-shrink-0">
             {profile?.avatar_url ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -61,17 +61,18 @@ export default async function DashboardPage() {
           </div>
           <div className="flex flex-col leading-none">
             <span className="text-[10px] uppercase text-[#727974] font-sans font-bold tracking-wider">Bem-vindo(a)</span>
-            <span className="text-sm font-sans font-bold text-[#042418] leading-tight max-w-[100px] truncate">{displayName}</span>
+            <span className="text-sm font-sans font-bold text-[#042418] leading-tight max-w-[90px] truncate">{displayName}</span>
           </div>
         </Link>
 
-        {/* Logo central */}
-        <div className="flex flex-col items-center justify-center">
+        {/* Logo - absolutamente centralizada */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
           <span className="material-symbols-outlined text-[#042418] text-xl" style={{ fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>spa</span>
           <span className="text-xl font-['Newsreader',serif] font-medium italic text-[#1b3a2c] tracking-tight leading-none">Pray for Day</span>
         </div>
 
-        <Search className="w-6 h-6 text-[#1b1c1a] hover:text-[#727974] cursor-pointer" />
+        {/* Search - lado direito */}
+        <Search className="w-6 h-6 text-[#1b1c1a] hover:text-[#727974] cursor-pointer ml-auto z-10" />
       </div>
 
       <div className="flex flex-col gap-8 px-6 pt-6">
