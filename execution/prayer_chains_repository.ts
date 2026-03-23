@@ -30,6 +30,8 @@ export interface PrayerChain {
   periodicity: string[];
   is_active: boolean;
   created_at: string;
+  creator_name?: string;       // nome do criador (do perfil)
+  creator_avatar?: string;     // avatar do criador
   prayer_chain_items?: PrayerChainItem[];
   participant_count?: number;
   has_joined?: boolean;
@@ -54,7 +56,7 @@ export async function getPredefinedPrayers(): Promise<PredefinedPrayer[]> {
 }
 
 /**
- * Busca todas as correntes de oração (feed público) com contagem de participantes
+ * Busca todas as correntes de oração (feed público) com contagem de participantes e nome do criador
  */
 export async function getPrayerChains(): Promise<PrayerChain[]> {
   const supabase = await createClient();
@@ -65,6 +67,7 @@ export async function getPrayerChains(): Promise<PrayerChain[]> {
     .from('prayer_chains')
     .select(`
       *,
+      profiles!prayer_chains_user_id_fkey (social_name, faith_name, display_name_preference, avatar_url),
       prayer_chain_items (
         id, quantity, order_index,
         predefined_prayer_id, custom_prayer_name,
@@ -80,12 +83,23 @@ export async function getPrayerChains(): Promise<PrayerChain[]> {
     return [];
   }
 
-  return (data as any[]).map(chain => ({
-    ...chain,
-    participant_count: chain.prayer_chain_participants?.length ?? 0,
-    has_joined: userId ? chain.prayer_chain_participants?.some((p: any) => p.user_id === userId) : false,
-    prayer_chain_participants: undefined, // limpa do retorno
-  })) as PrayerChain[];
+  return (data as any[]).map(chain => {
+    const profile = chain.profiles;
+    const pref = profile?.display_name_preference || 'social';
+    const creatorName = (pref === 'faith' && profile?.faith_name)
+      ? profile.faith_name
+      : profile?.social_name || 'Anônimo';
+
+    return {
+      ...chain,
+      creator_name: creatorName,
+      creator_avatar: profile?.avatar_url || null,
+      participant_count: chain.prayer_chain_participants?.length ?? 0,
+      has_joined: userId ? chain.prayer_chain_participants?.some((p: any) => p.user_id === userId) : false,
+      profiles: undefined,
+      prayer_chain_participants: undefined,
+    };
+  }) as PrayerChain[];
 }
 
 /**
