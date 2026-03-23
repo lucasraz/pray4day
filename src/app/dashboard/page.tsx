@@ -1,4 +1,3 @@
-import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { 
   Heart, 
@@ -11,15 +10,15 @@ import {
   BookOpen,
   User,
   Link2,
+  Feather,
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 
-import { getPrayers } from '../../../execution/prayers_repository'
+import { getDailyPrayer } from '../../../execution/original_prayers_repository'
 import { createClient } from '@/lib/supabase/server'
 
 export default async function DashboardPage() {
-  const prayers = await getPrayers()
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -35,12 +34,8 @@ export default async function DashboardPage() {
     ? profile.faith_name
     : profile?.social_name || user?.user_metadata?.first_name || 'Amigo(a) Fiel';
 
-  // Use the first prayer fetched as Oração do Dia, or fallback to mock
-  const dailyPrayer = prayers[0] || {
-    id: "1",
-    title: "Confie no Senhor",
-    content: '"O que confia no Senhor é como o monte de Sião..."',
-  }
+  // Oração do Dia: seleção determinística por usuário e data
+  const dailyPrayer = user ? await getDailyPrayer(user.id) : null;
 
   return (
     <div className="flex flex-col min-h-full pb-28">
@@ -75,37 +70,76 @@ export default async function DashboardPage() {
 
       <div className="flex flex-col gap-8 px-6 pt-6">
 
-        {/* Hero Card: Oração do Dia (The "Stone & Gold" Style) */}
+        {/* Hero Card: Oração do Dia */}
         <div className="flex flex-col gap-5">
           <h2 className="font-['Newsreader',serif] text-3xl font-light tracking-tight text-[#042418] text-center w-full">Oração do Dia</h2>
           
-          <Link href={`/dashboard/prayer/${dailyPrayer.id}`} className="group">
-            <div className="relative w-full aspect-[4/4] rounded-[2rem] overflow-hidden shadow-sm hover:shadow-md cursor-pointer transition-all duration-300 border border-[#e4e2de]/50">
-              <Image 
-                src="/images/bg-cross-sunset.png" 
-                alt="Oração do dia" 
-                fill 
-                className="object-cover"
-              />
-              {/* Soft overlay using ambient shadow guidelines, no pure blacks */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#042418]/80 via-[#042418]/20 to-[#042418]/5" />
-              
-              {/* Text context placed with intentional asymmetry or simple spacing */}
-              <div className="absolute inset-x-0 bottom-0 flex flex-col justify-end p-8">
-                <h3 className="text-[#ffffff] font-['Newsreader',serif] text-3xl italic tracking-tight leading-tight">
-                  {dailyPrayer.title}
-                </h3>
-                <p className="text-[#ffffff]/80 font-['Manrope',sans-serif] text-sm mt-2 line-clamp-2 leading-relaxed font-medium">
-                  {dailyPrayer.content}
-                </p>
-              </div>
-            </div>
+          {dailyPrayer ? (
+            <Link href={`/dashboard/prayers/${dailyPrayer.id}`} className="group">
+              <div className="relative w-full aspect-[4/4] rounded-[2rem] overflow-hidden shadow-sm hover:shadow-md cursor-pointer transition-all duration-300 border border-[#e4e2de]/50">
+                {/* Imagem da oração (se existir) ou fallback */}
+                {dailyPrayer.image_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={dailyPrayer.image_url}
+                    alt={dailyPrayer.title}
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                ) : (
+                  <Image
+                    src="/images/bg-cross-sunset.png"
+                    alt="Oração do dia"
+                    fill
+                    className="object-cover"
+                  />
+                )}
+                {/* Overlay gradiente */}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#042418]/85 via-[#042418]/25 to-transparent" />
 
-            {/* CTA Button: Dark green botanical overlay */}
-            <div className="w-full mt-5 bg-gradient-to-br from-[#042418] to-[#1b3a2c] text-[#ffdea5] font-['Manrope',sans-serif] text-xs font-bold uppercase tracking-[0.2em] py-5 rounded-full shadow-md hover:shadow-lg flex items-center justify-center gap-2 transform active:scale-[0.98] transition-all">
-              <Play className="w-4 h-4" fill="currentColor" /> <span>OUVIR ORAÇÃO</span>
+                {/* Badge de tema */}
+                <div className="absolute top-5 left-5">
+                  <span className="bg-white/20 backdrop-blur-sm text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border border-white/20">
+                    {dailyPrayer.theme}
+                  </span>
+                </div>
+
+                {/* Conteúdo */}
+                <div className="absolute inset-x-0 bottom-0 flex flex-col justify-end p-7">
+                  <h3 className="text-white font-['Newsreader',serif] text-3xl italic tracking-tight leading-tight">
+                    {dailyPrayer.title}
+                  </h3>
+                  <p className="text-white/75 font-sans text-sm mt-2 line-clamp-2 leading-relaxed">
+                    {dailyPrayer.content}
+                  </p>
+                  {/* Likes */}
+                  {(dailyPrayer.likes_count ?? 0) > 0 && (
+                    <div className="flex items-center gap-1.5 mt-3">
+                      <Heart className="w-3.5 h-3.5 text-[#ffdea5]" fill="#ffdea5" />
+                      <span className="text-[#ffdea5] text-xs font-sans font-bold">{dailyPrayer.likes_count}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* CTA Button */}
+              <div className="w-full mt-4 bg-gradient-to-br from-[#042418] to-[#1b3a2c] text-[#ffdea5] font-sans text-xs font-bold uppercase tracking-[0.2em] py-5 rounded-full shadow-md hover:shadow-lg flex items-center justify-center gap-2 active:scale-[0.98] transition-all">
+                <Feather className="w-4 h-4" /> <span>LER ORAÇÃO COMPLETA</span>
+              </div>
+            </Link>
+          ) : (
+            /* Estado vazio: ainda sem orações cadastradas */
+            <div className="relative w-full aspect-[4/4] rounded-[2rem] overflow-hidden shadow-sm border border-[#e4e2de]/50 flex flex-col items-center justify-center gap-4 bg-[#f5f3ef]">
+              <BookOpen className="w-10 h-10 text-[#c1b89a]" />
+              <div className="text-center px-8">
+                <p className="font-['Newsreader',serif] text-xl text-[#042418]">Ainda sem orações</p>
+                <p className="text-[#727974] text-sm font-sans mt-1">Seja o primeiro a compartilhar uma oração com a comunidade!</p>
+              </div>
+              <Link href="/dashboard/prayers/create"
+                className="bg-[#042418] text-white text-xs font-bold uppercase tracking-wider px-5 py-3 rounded-full mt-2 hover:bg-[#1b3a2c] transition-all">
+                + Criar Oração
+              </Link>
             </div>
-          </Link>
+          )}
         </div>
 
         {/* Category Row: Temas (Paper nesting cards) */}
@@ -130,7 +164,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Correntes de Oração */}
-        <Link href="/dashboard/prayer-chains" className="bg-gradient-to-br from-[#042418] to-[#1b3a2c] rounded-2xl p-5 flex items-center justify-between shadow-sm hover:shadow-md transition-all duration-300 mt-4 active:scale-[0.98]">
+        <Link href="/dashboard/prayer-chains" className="bg-gradient-to-br from-[#042418] to-[#1b3a2c] rounded-2xl p-5 flex items-center justify-between shadow-sm hover:shadow-md transition-all duration-300 active:scale-[0.98]">
           <div className="flex items-center gap-4">
             <div className="bg-white/10 p-3 rounded-xl">
               <Link2 className="w-5 h-5 text-[#ffdea5]" />

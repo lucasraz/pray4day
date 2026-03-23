@@ -3,6 +3,7 @@ import { ChevronLeft, Lock, Youtube, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import AudioRecorder from '@/components/ui/AudioRecorder';
 import ThemeSelector from './ThemeSelector';
+import ImagePicker from './ImagePicker';
 import { getUserPrayerLimits } from '../../../../../execution/original_prayers_repository';
 
 export default async function CreateOriginalPrayerPage() {
@@ -54,6 +55,9 @@ export default async function CreateOriginalPrayerPage() {
             </label>
             <ThemeSelector disabled={!limits.canCreate} />
           </div>
+
+          {/* Image Picker */}
+          <ImagePicker disabled={!limits.canCreate} />
 
           {/* Content textarea */}
           <div className="flex flex-col gap-2">

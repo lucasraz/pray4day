@@ -24,6 +24,7 @@ export async function createPrayerAction(formData: FormData) {
   const theme = formData.get('theme') as string;
   const content = formData.get('content') as string;
   const audioFile = formData.get('audioFile') as File | null;
+  const imageFile = formData.get('imageFile') as File | null;
   const youtube_url = formData.get('youtube_url') as string | null;
 
   if (!title || !theme || !content) {
@@ -32,15 +33,15 @@ export async function createPrayerAction(formData: FormData) {
   }
 
   let audio_url: string | undefined = undefined;
+  let image_url: string | undefined = undefined;
 
   try {
+    const { createClient } = await import('@/lib/supabase/server');
+    const supabase = await createClient();
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData.user?.id;
+
     if (audioFile && audioFile.size > 0) {
-      // Fazendo o upload do arquivo para o Storage via Supabase Client
-      // Precisamos importar o createClient localmente nessa branch de tentativa se for o caso,
-      // ou apenas instanciá-lo se a action o permitir. O repositório já faz uso dele, mas o storage é direto aqui:
-      const { createClient } = await import('@/lib/supabase/server');
-      const supabase = await createClient();
-      
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.webm`;
       const { data, error } = await supabase.storage.from('prayers-audio').upload(fileName, audioFile);
       
@@ -52,11 +53,26 @@ export async function createPrayerAction(formData: FormData) {
       }
     }
 
+    if (imageFile && imageFile.size > 0 && userId) {
+      const fileExt = imageFile.name.split('.').pop();
+      // Formato: userId/timestamp-random.ext para apoiar políticas de RLS de folder_name
+      const fileName = `${userId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const { data, error } = await supabase.storage.from('prayers-images').upload(fileName, imageFile);
+      
+      if (!error && data) {
+        const { data: urlData } = supabase.storage.from('prayers-images').getPublicUrl(fileName);
+        image_url = urlData.publicUrl;
+      } else {
+        console.error('Erro no upload de imagem:', error);
+      }
+    }
+
     await createOriginalPrayer({
       title,
       theme,
       content,
       audio_url,
+      image_url,
       youtube_url: youtube_url || undefined,
     });
   } catch (err: any) {
@@ -104,16 +120,36 @@ export async function updateOriginalPrayerAction(formData: FormData) {
   const theme = formData.get('theme') as string;
   const content = formData.get('content') as string;
   const youtube_url = formData.get('youtube_url') as string | null;
+  const imageFile = formData.get('imageFile') as File | null;
 
   if (!prayerId || !title || !theme || !content) return;
 
   const { updateOriginalPrayer } = await import('../../../../execution/original_prayers_repository');
+  let image_url: string | undefined = undefined;
+
   try {
+    const { createClient } = await import('@/lib/supabase/server');
+    const supabase = await createClient();
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData.user?.id;
+
+    if (imageFile && imageFile.size > 0 && userId) {
+      const fileExt = imageFile.name.split('.').pop();
+      const fileName = `${userId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const { data, error } = await supabase.storage.from('prayers-images').upload(fileName, imageFile);
+      
+      if (!error && data) {
+        const { data: urlData } = supabase.storage.from('prayers-images').getPublicUrl(fileName);
+        image_url = urlData.publicUrl;
+      }
+    }
+
     await updateOriginalPrayer(prayerId, {
       title,
       theme,
       content,
-      youtube_url: youtube_url || undefined
+      youtube_url: youtube_url || undefined,
+      image_url
     });
   } catch (err) {
     console.error('Falha ao atualizar oração', err);

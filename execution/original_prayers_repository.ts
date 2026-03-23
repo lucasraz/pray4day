@@ -8,6 +8,7 @@ export interface OriginalPrayer {
   content: string;
   audio_url: string | null;
   youtube_url: string | null;
+  image_url: string | null;
   duration: number;
   created_at: string;
   likes_count?: number;
@@ -152,6 +153,7 @@ export async function createOriginalPrayer(payload: {
   content: string;
   audio_url?: string;
   youtube_url?: string;
+  image_url?: string;
   duration?: number;
 }) {
   const supabase = await createClient();
@@ -336,13 +338,12 @@ export async function deleteOriginalPrayer(prayerId: string) {
  */
 export async function updateOriginalPrayer(
   prayerId: string, 
-  payload: { title: string; theme: string; content: string; youtube_url?: string }
+  payload: { title: string; theme: string; content: string; youtube_url?: string; image_url?: string }
 ) {
   const supabase = await createClient();
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) throw new Error('Não autenticado');
 
-  // Verifica se é o autor
   const { data: prayer } = await supabase.from('original_prayers').select('user_id').eq('id', prayerId).single();
   if (!prayer || prayer.user_id !== userData.user.id) {
     throw new Error('Sem premissão para editar.');
@@ -354,10 +355,48 @@ export async function updateOriginalPrayer(
       title: payload.title,
       theme: payload.theme,
       content: payload.content,
-      youtube_url: payload.youtube_url || null
+      youtube_url: payload.youtube_url || null,
+      image_url: payload.image_url ?? undefined,
     })
     .eq('id', prayerId);
 
   if (error) throw error;
   return true;
+}
+
+/**
+ * Seleciona deterministicamente a Oração do Dia para um usuário específico.
+ * Algoritmo: (diasDesdeEpoch + hash(userId)) % totalOrações
+ * → Diferente por pessoa, muda diariamente, cicla sem repetir
+ */
+export async function getDailyPrayer(userId: string): Promise<OriginalPrayer | null> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('original_prayers')
+    .select(`
+      id, user_id, title, theme, content, image_url, audio_url, youtube_url, duration, created_at,
+      likes_original_prayers(user_id)
+    `)
+    .order('created_at', { ascending: true }); // ordem consistente
+
+  if (error || !data || data.length === 0) return null;
+
+  // Hash simples do userId para offset único por pessoa
+  const userHash = userId
+    .replace(/-/g, '')
+    .split('')
+    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+
+  const daysSinceEpoch = Math.floor(Date.now() / 86_400_000);
+  const index = (daysSinceEpoch + userHash) % data.length;
+  const prayer = data[index] as any;
+
+  const likes = prayer.likes_original_prayers || [];
+  return {
+    ...prayer,
+    likes_count: likes.length,
+    has_liked: likes.some((l: any) => l.user_id === userId),
+    image_url: prayer.image_url || null,
+  } as OriginalPrayer;
 }
