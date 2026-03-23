@@ -76,7 +76,12 @@ export async function createPrayerAction(formData: FormData) {
     });
   } catch (err: any) {
     console.error('Error creating prayer:', err);
-    return;
+    
+    // Redireciona com erro para o form ler e dar feedback
+    if (err?.message === 'PAYWALL_LIMIT_REACHED') {
+      redirect('/dashboard/original-prayers/create?error=limit');
+    }
+    redirect('/dashboard/original-prayers/create?error=database');
   }
 
   revalidatePath('/dashboard/original-prayers');
