@@ -44,35 +44,42 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex flex-col min-h-full pb-28">
-      {/* Header - com Avatar e Nome */}
-      <div className="relative flex items-center bg-[#fbf9f5]/90 backdrop-blur-md sticky top-0 px-5 pt-5 pb-4 z-20 border-b border-[#c1c8c2]/10">
+      {/* Header em duas fileiras */}
+      <div className="bg-[#fbf9f5]/95 backdrop-blur-md sticky top-0 z-20 border-b border-[#c1c8c2]/10 shadow-sm">
         
-        {/* Avatar do usuário - lado esquerdo */}
-        <Link href="/dashboard/profile" className="flex items-center gap-2.5 group z-10">
-          <div className="w-9 h-9 bg-gradient-to-br from-[#042418] to-[#1b3a2c] rounded-full overflow-hidden border border-[#e4e2de]/60 shadow-sm group-hover:scale-105 transition-all flex-shrink-0">
+        {/* Fileira 1: Logo + Lupa */}
+        <div className="flex items-center justify-between px-5 pt-4 pb-1">
+          {/* Espaço vazio para equilibrar a lupa */}
+          <div className="w-8" />
+
+          {/* Logo centralizada */}
+          <div className="flex flex-col items-center justify-center">
+            <span className="material-symbols-outlined text-[#042418] text-xl leading-none" style={{ fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>spa</span>
+            <span className="text-[1.25rem] font-['Newsreader',serif] font-medium italic text-[#1b3a2c] tracking-tight leading-none">Pray for Day</span>
+          </div>
+
+          {/* Lupa */}
+          <Search className="w-5 h-5 text-[#1b1c1a] hover:text-[#727974] cursor-pointer" />
+        </div>
+
+        {/* Fileira 2: Saudação com Avatar */}
+        <Link href="/dashboard/profile" className="flex items-center gap-2.5 px-5 py-2.5 group">
+          <div className="w-8 h-8 bg-gradient-to-br from-[#042418] to-[#1b3a2c] rounded-full overflow-hidden border border-[#e4e2de]/60 shadow-sm group-hover:scale-105 transition-all flex-shrink-0">
             {profile?.avatar_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={profile.avatar_url} alt="Foto de perfil" className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
-                <User className="w-4 h-4 text-white" />
+                <User className="w-3.5 h-3.5 text-white" />
               </div>
             )}
           </div>
-          <div className="flex flex-col leading-none">
-            <span className="text-[10px] uppercase text-[#727974] font-sans font-bold tracking-wider">Bem-vindo(a)</span>
-            <span className="text-sm font-sans font-bold text-[#042418] leading-tight max-w-[90px] truncate">{displayName}</span>
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-[10px] uppercase text-[#727974] font-sans font-bold tracking-wider">Bem-vindo(a),</span>
+            <span className="text-sm font-sans font-bold text-[#042418] truncate max-w-[160px]">{displayName}</span>
           </div>
         </Link>
 
-        {/* Logo - absolutamente centralizada */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <span className="material-symbols-outlined text-[#042418] text-xl" style={{ fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>spa</span>
-          <span className="text-xl font-['Newsreader',serif] font-medium italic text-[#1b3a2c] tracking-tight leading-none">Pray for Day</span>
-        </div>
-
-        {/* Search - lado direito */}
-        <Search className="w-6 h-6 text-[#1b1c1a] hover:text-[#727974] cursor-pointer ml-auto z-10" />
       </div>
 
       <div className="flex flex-col gap-8 px-6 pt-6">
