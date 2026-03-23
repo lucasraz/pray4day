@@ -100,8 +100,8 @@ export default function PrayerCardFeed({ prayers, likeAction }: PrayerCardFeedPr
 
       {/* 🧾 Modal de Comentários */}
       {activeCommentsPrayer && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex flex-col justify-end" onClick={() => setActiveCommentsPrayer(null)}>
-          <div className="bg-white rounded-t-[2rem] p-6 w-full max-w-md mx-auto flex flex-col h-[70vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/50 z-[9999] flex flex-col justify-end" onClick={() => setActiveCommentsPrayer(null)}>
+          <div className="bg-white rounded-t-[2rem] p-6 pb-28 w-full max-w-md mx-auto flex flex-col h-[75vh] overflow-hidden" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <span className="font-['Newsreader',serif] font-medium text-xl text-[#042418]">Comentários ({commentsList.length})</span>
               <button onClick={() => setActiveCommentsPrayer(null)} className="p-2 text-[#727974] text-xl">✕</button>
