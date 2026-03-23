@@ -75,7 +75,7 @@ export default async function DashboardPage() {
           <h2 className="font-['Newsreader',serif] text-3xl font-light tracking-tight text-[#042418] text-center w-full">Oração do Dia</h2>
           
           {dailyPrayer ? (
-            <Link href={`/dashboard/prayers/${dailyPrayer.id}`} className="group">
+            <Link href={`/dashboard/original-prayers/${dailyPrayer.id}`} className="group">
               <div className="relative w-full aspect-[4/4] rounded-[2rem] overflow-hidden shadow-sm hover:shadow-md cursor-pointer transition-all duration-300 border border-[#e4e2de]/50">
                 {/* Imagem da oração (se existir) ou fallback */}
                 {dailyPrayer.image_url ? (
@@ -134,7 +134,7 @@ export default async function DashboardPage() {
                 <p className="font-['Newsreader',serif] text-xl text-[#042418]">Ainda sem orações</p>
                 <p className="text-[#727974] text-sm font-sans mt-1">Seja o primeiro a compartilhar uma oração com a comunidade!</p>
               </div>
-              <Link href="/dashboard/prayers/create"
+              <Link href="/dashboard/original-prayers/create"
                 className="bg-[#042418] text-white text-xs font-bold uppercase tracking-wider px-5 py-3 rounded-full mt-2 hover:bg-[#1b3a2c] transition-all">
                 + Criar Oração
               </Link>
