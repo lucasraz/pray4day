@@ -3,7 +3,6 @@ import { Card, CardContent } from '@/components/ui/card'
 import { 
   Heart, 
   Search, 
-  Menu, 
   Play, 
   CloudRain, 
   Users, 
@@ -11,18 +10,31 @@ import {
   ShieldAlert, 
   ChevronRight,
   BookOpen,
-  LogOut,
+  User,
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 
 import { getPrayers } from '../../../execution/prayers_repository'
-
-import { logout } from '@/app/login/actions'
+import { createClient } from '@/lib/supabase/server'
 
 export default async function DashboardPage() {
   const prayers = await getPrayers()
-  
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // Busca perfil para nome e avatar
+  const { data: profile } = user ? await supabase
+    .from('profiles')
+    .select('social_name, faith_name, avatar_url, display_name_preference')
+    .eq('id', user.id)
+    .single() : { data: null };
+
+  const displayPref = profile?.display_name_preference || 'social';
+  const displayName = displayPref === 'faith' && profile?.faith_name
+    ? profile.faith_name
+    : profile?.social_name || user?.user_metadata?.first_name || 'Amigo(a) Fiel';
+
   // Use the first prayer fetched as Oração do Dia, or fallback to mock
   const dailyPrayer = prayers[0] || {
     id: "1",
@@ -32,25 +44,37 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex flex-col min-h-full pb-28">
-      {/* Header - Transparent Backdrop style */}
-      <div className="flex justify-between items-center bg-[#fbf9f5]/90 backdrop-blur-md sticky top-0 px-6 pt-6 pb-4 z-20 border-b border-[#c1c8c2]/10">
-        <form action={logout}>
-          <button type="submit" className="text-[#1b1c1a] hover:text-[#727974] cursor-pointer flex items-center">
-            <LogOut className="w-5 h-5" />
-          </button>
-        </form>
+      {/* Header - com Avatar e Nome */}
+      <div className="flex justify-between items-center bg-[#fbf9f5]/90 backdrop-blur-md sticky top-0 px-5 pt-5 pb-4 z-20 border-b border-[#c1c8c2]/10">
+        
+        {/* Avatar do usuário com link para o perfil */}
+        <Link href="/dashboard/profile" className="flex items-center gap-2.5 group">
+          <div className="w-9 h-9 bg-gradient-to-br from-[#042418] to-[#1b3a2c] rounded-full overflow-hidden border border-[#e4e2de]/60 shadow-sm group-hover:scale-105 transition-all flex-shrink-0">
+            {profile?.avatar_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={profile.avatar_url} alt="Foto de perfil" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <User className="w-4 h-4 text-white" />
+              </div>
+            )}
+          </div>
+          <div className="flex flex-col leading-none">
+            <span className="text-[10px] uppercase text-[#727974] font-sans font-bold tracking-wider">Bem-vindo(a)</span>
+            <span className="text-sm font-sans font-bold text-[#042418] leading-tight max-w-[100px] truncate">{displayName}</span>
+          </div>
+        </Link>
+
+        {/* Logo central */}
         <div className="flex flex-col items-center justify-center">
           <span className="material-symbols-outlined text-[#042418] text-xl" style={{ fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>spa</span>
           <span className="text-xl font-['Newsreader',serif] font-medium italic text-[#1b3a2c] tracking-tight leading-none">Pray for Day</span>
         </div>
+
         <Search className="w-6 h-6 text-[#1b1c1a] hover:text-[#727974] cursor-pointer" />
       </div>
 
       <div className="flex flex-col gap-8 px-6 pt-6">
-        {/* Greetings - Small and Editorial Accent */}
-        <div className="text-center font-['Manrope',sans-serif] tracking-wide -mt-2">
-          <span className="text-xs uppercase text-[#775a19] font-bold tracking-widest">Bem-vinda(o)!</span>
-        </div>
 
         {/* Hero Card: Oração do Dia (The "Stone & Gold" Style) */}
         <div className="flex flex-col gap-5">

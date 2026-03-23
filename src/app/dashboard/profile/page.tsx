@@ -1,19 +1,23 @@
 import { createClient } from '@/lib/supabase/server';
-import { User, LogOut, Heart, Shield, Bell, Star, Save } from 'lucide-react';
+import { User, LogOut, Heart, Star, Save, CheckCircle, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { logout } from '@/app/login/actions';
 import { updateProfileAction } from './actions';
 
-export default async function ProfilePage() {
+export default async function ProfilePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ saved?: string }>;
+}) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
+  const { saved } = await searchParams;
 
   if (!user) return null;
 
-  // Busca dados completos logados na tabela profiles
   const { data: profile } = await supabase
     .from('profiles')
-    .select('social_name, faith_name, birth_date, state, avatar_url')
+    .select('social_name, faith_name, birth_date, state, avatar_url, display_name_preference')
     .eq('id', user.id)
     .single();
 
@@ -29,6 +33,11 @@ export default async function ProfilePage() {
     { value: 'SP', label: 'São Paulo' }, { value: 'SE', label: 'Sergipe' }, { value: 'TO', label: 'Tocantins' }
   ];
 
+  const displayPref = profile?.display_name_preference || 'social';
+  const displayName = displayPref === 'faith' && profile?.faith_name
+    ? profile.faith_name
+    : profile?.social_name || user?.user_metadata?.first_name || 'Amigo(a) Fiel';
+
   return (
     <div className="flex flex-col h-full bg-[#fbf9f5] w-full min-h-screen pb-32">
       {/* Header */}
@@ -36,17 +45,31 @@ export default async function ProfilePage() {
         <span className="font-display font-medium text-lg text-[#042418] mx-auto">Meu Perfil</span>
       </div>
 
+      {/* Toast de Feedback */}
+      {saved === 'true' && (
+        <div className="mx-6 mt-4 bg-[#e6f4ec] border border-[#4caf7f]/40 rounded-2xl p-4 flex items-center gap-3 shadow-sm">
+          <CheckCircle className="w-5 h-5 text-[#2e7d52] flex-shrink-0" />
+          <span className="text-[#2e7d52] text-sm font-sans font-bold">Perfil salvo com sucesso!</span>
+        </div>
+      )}
+      {saved === 'error' && (
+        <div className="mx-6 mt-4 bg-[#ffe4e4]/60 border border-[#ba1a1a]/30 rounded-2xl p-4 flex items-center gap-3 shadow-sm">
+          <AlertCircle className="w-5 h-5 text-[#ba1a1a] flex-shrink-0" />
+          <span className="text-[#ba1a1a] text-sm font-sans font-bold">Erro ao salvar. Tente novamente.</span>
+        </div>
+      )}
+
       <div className="p-6 flex-1 flex flex-col gap-8 w-full max-w-md mx-auto">
-        
+
         <form action={updateProfileAction} className="flex flex-col gap-8" encType="multipart/form-data">
-          {/* Profile Card & Identidade */}
+
+          {/* Profile Card com Avatar */}
           <div className="bg-white border border-[#e4e2de]/30 rounded-3xl p-6 shadow-sm flex flex-col items-center gap-4 text-center">
-            
             <label htmlFor="avatarFile" className="relative group cursor-pointer">
               <div className="w-24 h-24 bg-gradient-to-br from-[#042418] to-[#1b3a2c] rounded-full flex items-center justify-center shadow-md overflow-hidden border-2 border-[#fbf9f5] group-hover:scale-105 transition-all">
                 {profile?.avatar_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={profile.avatar_url} alt="User Avatar" className="w-full h-full object-cover" />
+                  <img src={profile.avatar_url} alt="Foto de perfil" className="w-full h-full object-cover" />
                 ) : (
                   <User className="w-10 h-10 text-white" />
                 )}
@@ -58,9 +81,7 @@ export default async function ProfilePage() {
             </label>
 
             <div>
-              <h2 className="font-display font-medium text-xl text-[#042418]">
-                {profile?.faith_name || profile?.social_name || user?.user_metadata?.first_name || 'Amigo(a) Fiel'}
-              </h2>
+              <h2 className="font-display font-medium text-xl text-[#042418]">{displayName}</h2>
               <p className="text-[#727974] font-sans text-sm">{user?.email}</p>
             </div>
           </div>
@@ -68,34 +89,63 @@ export default async function ProfilePage() {
           {/* Formulário de Identidade */}
           <div className="flex flex-col gap-3">
             <h3 className="text-xs uppercase font-bold text-[#775a19] tracking-wider mb-2">Seus Dados Pessoais</h3>
-            
+
             <div className="bg-white border border-[#e4e2de]/30 rounded-3xl p-5 shadow-sm flex flex-col gap-4">
+
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="social_name" className="text-sm font-sans font-bold text-[#042418]">Nome Social</label>
-                <input type="text" id="social_name" name="social_name" defaultValue={profile?.social_name || user?.user_metadata?.first_name || ''} placeholder="Seu nome civil..." required className="w-full bg-[#f5f3ef] border border-[#e4e2de] rounded-xl px-4 py-2.5 text-sm font-sans focus:outline-none focus:border-[#775a19] focus:ring-1 focus:ring-[#775a19] transition-all" />
+                <input type="text" id="social_name" name="social_name"
+                  defaultValue={profile?.social_name || user?.user_metadata?.first_name || ''}
+                  placeholder="Seu nome civil..."
+                  className="w-full bg-[#f5f3ef] border border-[#e4e2de] rounded-xl px-4 py-2.5 text-sm font-sans focus:outline-none focus:border-[#775a19] focus:ring-1 focus:ring-[#775a19] transition-all" />
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label htmlFor="faith_name" className="text-sm font-sans font-bold text-[#042418]">Nome de Fé <span className="text-[#727974] font-normal text-xs">(Opcional)</span></label>
-                <input type="text" id="faith_name" name="faith_name" defaultValue={profile?.faith_name || ''} placeholder="Como gosta de ser chamado na igreja..." className="w-full bg-[#f5f3ef] border border-[#e4e2de] rounded-xl px-4 py-2.5 text-sm font-sans focus:outline-none focus:border-[#775a19] focus:ring-1 focus:ring-[#775a19] transition-all" />
+                <label htmlFor="faith_name" className="text-sm font-sans font-bold text-[#042418]">
+                  Nome de Fé <span className="text-[#727974] font-normal text-xs">(Opcional)</span>
+                </label>
+                <input type="text" id="faith_name" name="faith_name"
+                  defaultValue={profile?.faith_name || ''}
+                  placeholder="Como é chamado(a) na comunidade..."
+                  className="w-full bg-[#f5f3ef] border border-[#e4e2de] rounded-xl px-4 py-2.5 text-sm font-sans focus:outline-none focus:border-[#775a19] focus:ring-1 focus:ring-[#775a19] transition-all" />
+              </div>
+
+              {/* Preferência de nome público */}
+              <div className="flex flex-col gap-2 pt-1">
+                <span className="text-sm font-sans font-bold text-[#042418]">Nome que aparece para todos</span>
+                <div className="grid grid-cols-2 gap-2">
+                  <label className={`flex items-center justify-center gap-2 p-3 rounded-xl border cursor-pointer transition-all text-sm font-sans font-bold ${displayPref === 'social' ? 'bg-[#042418] text-white border-[#042418]' : 'bg-[#f5f3ef] text-[#727974] border-[#e4e2de] hover:bg-[#e4e2de]'}`}>
+                    <input type="radio" name="display_name_preference" value="social" defaultChecked={displayPref === 'social'} className="hidden" />
+                    Nome Social
+                  </label>
+                  <label className={`flex items-center justify-center gap-2 p-3 rounded-xl border cursor-pointer transition-all text-sm font-sans font-bold ${displayPref === 'faith' ? 'bg-[#042418] text-white border-[#042418]' : 'bg-[#f5f3ef] text-[#727974] border-[#e4e2de] hover:bg-[#e4e2de]'}`}>
+                    <input type="radio" name="display_name_preference" value="faith" defaultChecked={displayPref === 'faith'} className="hidden" />
+                    Nome de Fé
+                  </label>
+                </div>
+                <p className="text-[#727974] text-xs font-sans">Este nome aparece no seu dashboard e para outras pessoas</p>
               </div>
 
               <div className="flex gap-3">
-                <div className="flex flex-col gap-1.5 flex-1 w-full">
+                <div className="flex flex-col gap-1.5 flex-1">
                   <label htmlFor="birth_date" className="text-sm font-sans font-bold text-[#042418]">Nascimento</label>
-                  <input type="date" id="birth_date" name="birth_date" defaultValue={profile?.birth_date || ''} className="w-full bg-[#f5f3ef] border border-[#e4e2de] rounded-xl px-3 py-2.5 text-sm font-sans focus:outline-none focus:border-[#775a19] focus:ring-1 focus:ring-[#775a19] transition-all" />
+                  <input type="date" id="birth_date" name="birth_date"
+                    defaultValue={profile?.birth_date || ''}
+                    className="w-full bg-[#f5f3ef] border border-[#e4e2de] rounded-xl px-3 py-2.5 text-sm font-sans focus:outline-none focus:border-[#775a19] focus:ring-1 focus:ring-[#775a19] transition-all" />
                 </div>
-                
-                <div className="flex flex-col gap-1.5 flex-[1.2] w-full">
+
+                <div className="flex flex-col gap-1.5 flex-[1.2]">
                   <label htmlFor="state" className="text-sm font-sans font-bold text-[#042418]">Estado</label>
-                  <select id="state" name="state" defaultValue={profile?.state || ''} className="w-full bg-[#f5f3ef] border border-[#e4e2de] rounded-xl px-3 py-2.5 text-sm font-sans focus:outline-none focus:border-[#775a19] focus:ring-1 focus:ring-[#775a19] transition-all appearance-none cursor-pointer">
+                  <select id="state" name="state" defaultValue={profile?.state || ''}
+                    className="w-full bg-[#f5f3ef] border border-[#e4e2de] rounded-xl px-3 py-2.5 text-sm font-sans focus:outline-none focus:border-[#775a19] focus:ring-1 focus:ring-[#775a19] transition-all appearance-none cursor-pointer">
                     <option value="" disabled>Selecione...</option>
-                    {states.map(st => <option key={st.value} value={st.value}>{st.value} - {st.label}</option>)}
+                    {states.map(st => <option key={st.value} value={st.value}>{st.value} – {st.label}</option>)}
                   </select>
                 </div>
               </div>
 
-              <button type="submit" className="mt-2 w-full bg-[#f0eeea] text-[#042418] border border-[#e4e2de]/80 font-sans text-sm font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-[#e4e2de] hover:border-[#c1c8c2] transition-all">
+              <button type="submit"
+                className="mt-2 w-full bg-gradient-to-br from-[#042418] to-[#1b3a2c] text-white font-sans text-sm font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:shadow-md active:scale-[0.98] transition-all shadow-sm">
                 <Save className="w-4 h-4" />
                 SALVAR ALTERAÇÕES
               </button>
@@ -103,7 +153,7 @@ export default async function ProfilePage() {
           </div>
         </form>
 
-        {/* Menu Options */}
+        {/* Menu Jornada */}
         <div className="flex flex-col gap-3">
           <h3 className="text-xs uppercase font-bold text-[#775a19] tracking-wider mb-2">Sua Jornada</h3>
 
@@ -126,8 +176,6 @@ export default async function ProfilePage() {
               <p className="text-[#ba1a1a] font-sans text-xs">Exclusivo: Acesse orações salvas</p>
             </div>
           </Link>
-
-          {/* ... Outros links que ja estavam inativos ... */}
         </div>
 
         {/* Logout */}
