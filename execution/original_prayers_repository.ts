@@ -400,3 +400,43 @@ export async function getDailyPrayer(userId: string): Promise<OriginalPrayer | n
     image_url: prayer.image_url || null,
   } as OriginalPrayer;
 }
+
+/**
+ * Retorna uma lista determinística de orações (carrossel) para o dia
+ */
+export async function getDailyPrayersList(userId: string, limit = 5): Promise<OriginalPrayer[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('original_prayers')
+    .select(`
+      id, user_id, title, theme, content, image_url, audio_url, youtube_url, duration, created_at,
+      likes_original_prayers(user_id)
+    `)
+    .order('created_at', { ascending: true });
+
+  if (error || !data || data.length === 0) return [];
+
+  const userHash = userId
+    .replace(/-/g, '')
+    .split('')
+    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+
+  const daysSinceEpoch = Math.floor(Date.now() / 86_400_000);
+  const startIndex = (daysSinceEpoch + userHash) % data.length;
+
+  const prayers: OriginalPrayer[] = [];
+  
+  for (let i = 0; i < Math.min(limit, data.length); i++) {
+    const p = data[(startIndex + i) % data.length];
+    const likes = p.likes_original_prayers || [];
+    prayers.push({
+      ...p,
+      likes_count: likes.length,
+      has_liked: likes.some((l: any) => l.user_id === userId),
+      image_url: p.image_url || null,
+    } as OriginalPrayer);
+  }
+
+  return prayers;
+}

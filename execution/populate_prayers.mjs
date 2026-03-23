@@ -36,9 +36,18 @@ async function main() {
   const lines = content.split('\n');
 
   let currentCategory = 'Provação'; // Fallback
+  let currentImageUrl = null;
   const prayersToInsert = [];
   let currentTitle = null;
   let currentContent = [];
+
+  const imageMap = {
+    'ORAÇÕES DA MANHÃ': 'https://lmcedwslucgzsonqtexs.supabase.co/storage/v1/object/public/prayers-images/default_themes/morning.png',
+    'ORAÇÕES DA NOITE': 'https://lmcedwslucgzsonqtexs.supabase.co/storage/v1/object/public/prayers-images/default_themes/night.png',
+    'ANSIEDADE E MEDO': 'https://lmcedwslucgzsonqtexs.supabase.co/storage/v1/object/public/prayers-images/default_themes/anxiety.png',
+    'FAMÍLIA': 'https://lmcedwslucgzsonqtexs.supabase.co/storage/v1/object/public/prayers-images/default_themes/family.png',
+    'FÉ E CONFIANÇA': 'https://lmcedwslucgzsonqtexs.supabase.co/storage/v1/object/public/prayers-images/default_themes/faith.png'
+  };
 
   // Mapeamento de cabeçalho para ENUM do Banco ('Ansiedade', 'Família', 'Prosperidade', 'Provação')
   const themeMap = {
@@ -56,6 +65,7 @@ async function main() {
         title: currentTitle.trim(),
         theme: currentCategory,
         content: currentContent.join('\n').trim(),
+        image_url: currentImageUrl,
         duration: 0
       });
       currentContent = [];
@@ -70,10 +80,11 @@ async function main() {
     // Detecta Categoria
     // Tem emojis ou é em UPPERCASE. Ex: "🌅 ORAÇÕES DA MANHÃ"
     const catMatch = trimmedLine.match(/^[^A-ZÀ-Ú]*([A-ZÀ-Ú\s\/]+)(?:\s*\(.+\))?$/);
-    if (catMatch && trimmedLine.includes('ORAÇÕES') || trimmedLine.includes('ANSIEDADE') || trimmedLine.includes('FAMÍLIA') || trimmedLine.includes('CONFIANÇA')) {
+    if (catMatch && (trimmedLine.includes('ORAÇÕES') || trimmedLine.includes('ANSIEDADE') || trimmedLine.includes('FAMÍLIA') || trimmedLine.includes('CONFIANÇA'))) {
       saveCurrentPrayer(); // Salva a anterior antes de mudar categoria
       const catText = catMatch[1].trim();
       currentCategory = themeMap[catText] || 'Provação';
+      currentImageUrl = imageMap[catText] || null;
       console.log(`📂 Categoria Encontrada: [${catText}] -> Mapeada para: ${currentCategory}`);
       currentTitle = null;
       continue;
