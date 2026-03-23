@@ -20,3 +20,10 @@ CREATE POLICY "profile_insert_own"
   ON public.profiles FOR INSERT
   TO authenticated
   WITH CHECK (auth.uid() = id);
+
+-- 3. Permitir LEITURA (SELECT) para que criadores das orações/correntes apareçam para todos
+DROP POLICY IF EXISTS "profile_select_all" ON public.profiles;
+CREATE POLICY "profile_select_all"
+  ON public.profiles FOR SELECT
+  TO authenticated
+  USING (true);
