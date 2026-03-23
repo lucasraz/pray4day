@@ -403,8 +403,9 @@ export async function getDailyPrayer(userId: string): Promise<OriginalPrayer | n
 
 /**
  * Retorna uma lista determinística de orações (carrossel) para o dia
+ * Regra: 1 oração de cada tema, no máximo 4 temas.
  */
-export async function getDailyPrayersList(userId: string, limit = 5): Promise<OriginalPrayer[]> {
+export async function getDailyPrayersList(userId: string, limit = 4): Promise<OriginalPrayer[]> {
   const supabase = await createClient();
 
   const { data, error } = await supabase
@@ -423,13 +424,27 @@ export async function getDailyPrayersList(userId: string, limit = 5): Promise<Or
     .reduce((acc, char) => acc + char.charCodeAt(0), 0);
 
   const daysSinceEpoch = Math.floor(Date.now() / 86_400_000);
-  const startIndex = (daysSinceEpoch + userHash) % data.length;
 
+  // 1. Agrupar por Tema
+  const themeBuckets: { [key: string]: any[] } = {};
+  for (const p of data) {
+    if (!themeBuckets[p.theme]) {
+      themeBuckets[p.theme] = [];
+    }
+    themeBuckets[p.theme].push(p);
+  }
+
+  // 2. Escolher até 4 temas diferentes
+  const availableThemes = Object.keys(themeBuckets).slice(0, limit);
   const prayers: OriginalPrayer[] = [];
-  
-  for (let i = 0; i < Math.min(limit, data.length); i++) {
-    const p = data[(startIndex + i) % data.length];
+
+  // 3. Selecionar 1 oração determinística de cada tema
+  for (const theme of availableThemes) {
+    const bucket = themeBuckets[theme];
+    const subIndex = (daysSinceEpoch + userHash) % bucket.length;
+    const p = bucket[subIndex];
     const likes = p.likes_original_prayers || [];
+
     prayers.push({
       ...p,
       likes_count: likes.length,
