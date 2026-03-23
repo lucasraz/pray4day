@@ -17,6 +17,7 @@ import Link from 'next/link'
 
 import { getDailyPrayer } from '../../../execution/original_prayers_repository'
 import { getDailyVerse } from '../../../execution/verses_repository'
+import { getPrayerChains } from '../../../execution/prayer_chains_repository'
 import VerseCard from '@/components/dashboard/VerseCard'
 import { createClient } from '@/lib/supabase/server'
 
@@ -24,8 +25,8 @@ export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  // 🌟 Carrega perfil, oração e versículo em paralelo para melhorar a velocidade
-  const [profileResult, dailyPrayer, dailyVerse] = await Promise.all([
+  // 🌟 Carrega perfil, orações, correntes e versículo em paralelo para melhorar a velocidade
+  const [profileResult, dailyPrayer, dailyVerse, chains] = await Promise.all([
     user
       ? supabase
           .from('profiles')
@@ -35,6 +36,7 @@ export default async function DashboardPage() {
       : Promise.resolve({ data: null }),
     user ? getDailyPrayer(user.id) : Promise.resolve(null),
     user ? getDailyVerse() : Promise.resolve(null),
+    getPrayerChains(),
   ])
 
   const profile = profileResult.data
@@ -43,6 +45,16 @@ export default async function DashboardPage() {
   const displayName = displayPref === 'faith' && profile?.faith_name
     ? profile.faith_name
     : profile?.social_name || user?.user_metadata?.first_name || 'Amigo(a) Fiel';
+
+  // Cálculos para o Card de Correntes
+  const joinedChain = chains.find(c => c.has_joined);
+  let daysRemaining: number | null = null;
+  if (joinedChain?.end_date) {
+    const end = new Date(joinedChain.end_date);
+    const today = new Date();
+    const diff = end.getTime() - today.getTime();
+    daysRemaining = Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+  }
 
   return (
     <div className="flex flex-col min-h-full pb-28">
@@ -83,21 +95,21 @@ export default async function DashboardPage() {
           
           {dailyPrayer ? (
             <Link href={`/dashboard/original-prayers/${dailyPrayer.id}`} className="group">
-              <div className="relative w-full aspect-[4/4] rounded-[2rem] overflow-hidden shadow-sm hover:shadow-md cursor-pointer transition-all duration-300 border border-[#e4e2de]/50">
-                {/* Imagem da oração (se existir) ou fallback */}
+              <div className="relative w-full aspect-[4/4] rounded-[2rem] overflow-hidden shadow-sm hover:shadow-md cursor-pointer transition-all duration-300 border border-[#e4e2de]/50 bg-[#042418]">
+                {/* Imagem da oração (se existir) ou fallback - Esmaecida */}
                 {dailyPrayer.image_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={dailyPrayer.image_url}
                     alt={dailyPrayer.title}
-                    className="absolute inset-0 w-full h-full object-cover"
+                    className="absolute inset-0 w-full h-full object-cover opacity-60 transition-opacity duration-300 group-hover:opacity-50"
                   />
                 ) : (
                   <Image
                     src="/images/bg-cross-sunset.png"
                     alt="Oração do dia"
                     fill
-                    className="object-cover"
+                    className="object-cover opacity-60 transition-opacity duration-300 group-hover:opacity-50"
                   />
                 )}
                 {/* Overlay gradiente */}
@@ -177,8 +189,14 @@ export default async function DashboardPage() {
               <Link2 className="w-5 h-5 text-[#ffdea5]" />
             </div>
             <div className="flex flex-col gap-0.5">
-              <span className="text-white text-base font-['Newsreader',serif] font-medium leading-none">Correntes de Oração</span>
-              <span className="text-white/60 text-[11px] font-['Manrope',sans-serif] font-semibold uppercase tracking-wider">Ore junto com a comunidade</span>
+              <span className="text-white text-base font-['Newsreader',serif] font-medium leading-none">
+                {joinedChain ? joinedChain.title : 'Correntes de Oração'}
+              </span>
+              <span className="text-white/60 text-[11px] font-['Manrope',sans-serif] font-semibold uppercase tracking-wider">
+                {daysRemaining !== null 
+                  ? `${daysRemaining} dias restantes` 
+                  : 'Ore junto com a comunidade'}
+              </span>
             </div>
           </div>
           <ChevronRight className="w-5 h-5 text-white/40" />
