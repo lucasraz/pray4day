@@ -64,7 +64,17 @@ export default async function OriginalPrayersPage({
           </div>
         ) : (
           prayers.map((prayer) => (
-            <div key={prayer.id} className="bg-white border border-[#e4e2de]/30 rounded-2xl p-4 shadow-sm flex flex-col gap-3">
+            <div key={prayer.id} className="relative bg-white border border-[#e4e2de]/30 rounded-2xl p-4 shadow-sm flex flex-col gap-3 overflow-hidden">
+              {/* Imagem de fundo sutil (Efeito marca d'água) */}
+              {prayer.image_url && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img 
+                  src={prayer.image_url} 
+                  alt="" 
+                  className="absolute inset-0 w-full h-full object-cover opacity-[0.08] mix-blend-multiply pointer-events-none" 
+                />
+              )}
+              
               {/* Top Details */}
               <div className="flex justify-between items-start">
                 <Link href={`/dashboard/original-prayers/${prayer.id}`} className="group-hover:opacity-80 transition-opacity">

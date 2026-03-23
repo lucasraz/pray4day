@@ -2,8 +2,8 @@
 import { useState, useRef } from 'react';
 import { Camera, X, ImagePlus } from 'lucide-react';
 
-export default function ImagePicker({ disabled }: { disabled?: boolean }) {
-  const [preview, setPreview] = useState<string | null>(null);
+export default function ImagePicker({ disabled, initialPreview }: { disabled?: boolean, initialPreview?: string }) {
+  const [preview, setPreview] = useState<string | null>(initialPreview || null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -3,6 +3,7 @@ import { ChevronLeft, Youtube } from 'lucide-react';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import ThemeSelector from '../../create/ThemeSelector';
+import ImagePicker from '../../create/ImagePicker';
 import { getOriginalPrayerById } from '../../../../../../execution/original_prayers_repository';
 
 export default async function EditOriginalPrayerPage({
@@ -35,7 +36,7 @@ export default async function EditOriginalPrayerPage({
 
       {/* Form Content */}
       <div className="p-6 flex-1 flex flex-col gap-6 w-full max-w-md mx-auto">
-        <form action={updateOriginalPrayerAction} className="flex flex-col gap-6 w-full">
+        <form action={updateOriginalPrayerAction} encType="multipart/form-data" className="flex flex-col gap-6 w-full">
           <input type="hidden" name="prayerId" value={prayer.id} />
           
           {/* Title input */}
@@ -62,6 +63,9 @@ export default async function EditOriginalPrayerPage({
             <ThemeSelector disabled={false} />
             <span className="text-xs text-[#727974] font-sans">Atual: <strong>{prayer.theme}</strong></span>
           </div>
+
+          {/* Image Picker */}
+          <ImagePicker initialPreview={prayer.image_url || undefined} disabled={false} />
 
           {/* Content textarea */}
           <div className="flex flex-col gap-2">
