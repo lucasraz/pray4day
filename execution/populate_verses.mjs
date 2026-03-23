@@ -17,7 +17,7 @@ if (!supabaseUrl || !supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey)
 
 async function main() {
-  const filePath = path.join(process.cwd(), 'versiculos_biblicos.txt')
+  const filePath = path.join(process.cwd(), 'versiculos_biblicos_completos.txt')
   
   if (!fs.existsSync(filePath)) {
     console.error(`❌ Arquivo não encontrado: ${filePath}`)
@@ -38,11 +38,11 @@ async function main() {
 
     // Detecta categoria (geralmente tem um emoji e traços abaixo, ou é toda em MAIÚSCULAS)
     // No arquivo: "🙏 CONFIANÇA / FÉ", "----------------"
-    if (trimmedLine.startsWith('---')) continue // Pula os traços
+    if (trimmedLine.match(/^[-]{3,}$/)) continue // Pula se for apenas traços
 
-    const emojiCategoryMatch = trimmedLine.match(/^[^a-zA-Z\d\s]*\s*([A-ZÀ-Ú\s\/]+)$/)
-    if (emojiCategoryMatch) {
-      currentCategory = emojiCategoryMatch[1].trim()
+    const categoryMatch = trimmedLine.match(/^---\s*([^()\-\d]+?)\s*(?:\([^)]+\))?\s*---$/)
+    if (categoryMatch) {
+      currentCategory = categoryMatch[1].trim()
       console.log(`📂 Categoria encontrada: ${currentCategory}`)
       continue
     }
@@ -73,11 +73,14 @@ async function main() {
       const text = parts.slice(1).join(': ').trim() // Junta o resto de volta caso o texto tenha ": "
 
       if (reference && text && currentCategory) {
-        versesToInsert.push({
-          category: currentCategory,
-          reference: reference,
-          text: text
-        })
+        // Evita duplicados na mesma carga
+        if (!versesToInsert.some(v => v.reference === reference)) {
+          versesToInsert.push({
+            category: currentCategory,
+            reference: reference,
+            text: text
+          })
+        }
       }
     } else {
       // Tenta outro separador se houver, ou loga erro
@@ -123,7 +126,10 @@ async function main() {
   sqlContent += `ALTER TABLE public.verse_of_the_day ENABLE ROW LEVEL SECURITY;\n\n`
 
   sqlContent += `-- 4. Políticas\n`
-  sqlContent += `CREATE POLICY "Permitir leitura pública de versículos" ON public.verses FOR SELECT TO authenticated USING (true);\n`
+  sqlContent += `DROP POLICY IF EXISTS "Permitir leitura pública de versículos" ON public.verses;\n`
+  sqlContent += `CREATE POLICY "Permitir leitura pública de versículos" ON public.verses FOR SELECT TO authenticated USING (true);\n\n`
+  
+  sqlContent += `DROP POLICY IF EXISTS "Permitir leitura pública de versículo do dia" ON public.verse_of_the_day;\n`
   sqlContent += `CREATE POLICY "Permitir leitura pública de versículo do dia" ON public.verse_of_the_day FOR SELECT TO authenticated USING (true);\n\n`
 
   sqlContent += `-- 5. Inserir Versículos\n`
