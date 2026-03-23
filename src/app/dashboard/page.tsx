@@ -24,23 +24,25 @@ export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Busca perfil para nome e avatar
-  const { data: profile } = user ? await supabase
-    .from('profiles')
-    .select('social_name, faith_name, avatar_url, display_name_preference')
-    .eq('id', user.id)
-    .single() : { data: null };
+  // 🌟 Carrega perfil, oração e versículo em paralelo para melhorar a velocidade
+  const [profileResult, dailyPrayer, dailyVerse] = await Promise.all([
+    user
+      ? supabase
+          .from('profiles')
+          .select('social_name, faith_name, avatar_url, display_name_preference')
+          .eq('id', user.id)
+          .single()
+      : Promise.resolve({ data: null }),
+    user ? getDailyPrayer(user.id) : Promise.resolve(null),
+    user ? getDailyVerse() : Promise.resolve(null),
+  ])
+
+  const profile = profileResult.data
 
   const displayPref = profile?.display_name_preference || 'social';
   const displayName = displayPref === 'faith' && profile?.faith_name
     ? profile.faith_name
     : profile?.social_name || user?.user_metadata?.first_name || 'Amigo(a) Fiel';
-
-  // Oração do Dia: seleção determinística por usuário e data
-  const dailyPrayer = user ? await getDailyPrayer(user.id) : null;
-  
-  // Versículo do Dia
-  const dailyVerse = user ? await getDailyVerse() : null;
 
   return (
     <div className="flex flex-col min-h-full pb-28">
