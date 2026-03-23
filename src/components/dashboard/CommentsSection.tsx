@@ -44,8 +44,10 @@ export default function CommentsSection({ prayerId, chainId }: CommentsSectionPr
         ? await addChainCommentAction(chainId, newComment)
         : { error: 'ID inválido' };
 
-      if (res.error === 'PREMIUM_LOCKED') {
-        alert('Comentários são recursos exclusivos para membros Premium! ✨');
+      if (res.error) {
+        alert(res.error === 'PREMIUM_LOCKED' 
+          ? 'Comentários são recursos exclusivos para membros Premium! ✨' 
+          : `Falha ao comentar: ${res.error}`);
         return;
       }
       

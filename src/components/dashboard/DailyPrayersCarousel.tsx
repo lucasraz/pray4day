@@ -41,8 +41,10 @@ export default function DailyPrayersCarousel({ prayers }: DailyPrayersCarouselPr
   const handleAddComment = async () => {
     if (!newComment.trim() || !activeCommentsPrayer) return;
     const res = await addCommentAction(activeCommentsPrayer.id, newComment);
-    if (res.error === 'PREMIUM_LOCKED') {
-       alert('Comentários são recursos exclusivos para membros Premium! ✨');
+    if (res.error) {
+       alert(res.error === 'PREMIUM_LOCKED' 
+         ? 'Comentários são recursos exclusivos para membros Premium! ✨' 
+         : `Falha ao comentar: ${res.error}`);
        return;
     }
     setNewComment('');
