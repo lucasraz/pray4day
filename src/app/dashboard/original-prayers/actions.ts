@@ -81,3 +81,46 @@ export async function favoritePrayerAction(formData: FormData) {
   revalidatePath(`/dashboard/original-prayers/${prayerId}`);
   revalidatePath('/dashboard/original-prayers');
 }
+
+export async function deleteOriginalPrayerAction(formData: FormData) {
+  const prayerId = formData.get('prayerId') as string;
+  if (!prayerId) return;
+
+  const { deleteOriginalPrayer } = await import('../../../../execution/original_prayers_repository');
+  try {
+    await deleteOriginalPrayer(prayerId);
+  } catch (err) {
+    console.error('Falha ao excluir oração', err);
+    return;
+  }
+
+  revalidatePath('/dashboard/original-prayers');
+  redirect('/dashboard/original-prayers');
+}
+
+export async function updateOriginalPrayerAction(formData: FormData) {
+  const prayerId = formData.get('prayerId') as string;
+  const title = formData.get('title') as string;
+  const theme = formData.get('theme') as string;
+  const content = formData.get('content') as string;
+  const youtube_url = formData.get('youtube_url') as string | null;
+
+  if (!prayerId || !title || !theme || !content) return;
+
+  const { updateOriginalPrayer } = await import('../../../../execution/original_prayers_repository');
+  try {
+    await updateOriginalPrayer(prayerId, {
+      title,
+      theme,
+      content,
+      youtube_url: youtube_url || undefined
+    });
+  } catch (err) {
+    console.error('Falha ao atualizar oração', err);
+    return;
+  }
+
+  revalidatePath(`/dashboard/original-prayers/${prayerId}`);
+  revalidatePath('/dashboard/original-prayers');
+  redirect(`/dashboard/original-prayers/${prayerId}`);
+}

@@ -12,6 +12,8 @@ export interface OriginalPrayer {
   created_at: string;
   likes_count?: number;
   has_liked?: boolean;
+  has_favorited?: boolean;
+  is_author?: boolean;
 }
 
 /**
@@ -53,7 +55,8 @@ export async function getOriginalPrayers(filters?: { theme?: string; keyword?: s
     return {
       ...p,
       likes_count: likes.length,
-      has_liked: likes.some((l: any) => l.user_id === currentUserId)
+      has_liked: likes.some((l: any) => l.user_id === currentUserId),
+      is_author: p.user_id === currentUserId
     };
   });
 
@@ -92,8 +95,9 @@ export async function getOriginalPrayerById(id: string) {
     ...data,
     likes_count: likes.length,
     has_liked: likes.some((l: any) => l.user_id === currentUserId),
-    has_favorited: favs.some((f: any) => f.user_id === currentUserId)
-  } as OriginalPrayer & { likes_count: number; has_liked: boolean; has_favorited: boolean };
+    has_favorited: favs.some((f: any) => f.user_id === currentUserId),
+    is_author: data.user_id === currentUserId
+  } as OriginalPrayer & { likes_count: number; has_liked: boolean; has_favorited: boolean; is_author: boolean };
 }
 
 /**
@@ -306,4 +310,54 @@ export async function getFavoritePrayers() {
       has_favorited: favs.some((f: any) => f.user_id === currentUserId),
     } as OriginalPrayer & { likes_count: number; has_liked: boolean; has_favorited: boolean };
   }).filter(Boolean);
+}
+
+/**
+ * Deleta uma oração (apenas se for o autor)
+ */
+export async function deleteOriginalPrayer(prayerId: string) {
+  const supabase = await createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) throw new Error('Não autenticado');
+
+  // Verifica se é o autor
+  const { data: prayer } = await supabase.from('original_prayers').select('user_id').eq('id', prayerId).single();
+  if (!prayer || prayer.user_id !== userData.user.id) {
+    throw new Error('Sem premissão para excluir.');
+  }
+
+  const { error } = await supabase.from('original_prayers').delete().eq('id', prayerId);
+  if (error) throw error;
+  return true;
+}
+
+/**
+ * Atualiza uma oração (apenas se for o autor)
+ */
+export async function updateOriginalPrayer(
+  prayerId: string, 
+  payload: { title: string; theme: string; content: string; youtube_url?: string }
+) {
+  const supabase = await createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) throw new Error('Não autenticado');
+
+  // Verifica se é o autor
+  const { data: prayer } = await supabase.from('original_prayers').select('user_id').eq('id', prayerId).single();
+  if (!prayer || prayer.user_id !== userData.user.id) {
+    throw new Error('Sem premissão para editar.');
+  }
+
+  const { error } = await supabase
+    .from('original_prayers')
+    .update({
+      title: payload.title,
+      theme: payload.theme,
+      content: payload.content,
+      youtube_url: payload.youtube_url || null
+    })
+    .eq('id', prayerId);
+
+  if (error) throw error;
+  return true;
 }
