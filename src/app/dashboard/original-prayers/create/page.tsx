@@ -1,13 +1,18 @@
 import { createPrayerAction } from '../actions';
-import { ChevronLeft, Lock, Youtube, Sparkles } from 'lucide-react';
+import { ChevronLeft, Lock, Youtube, Sparkles, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import AudioRecorder from '@/components/ui/AudioRecorder';
 import ThemeSelector from './ThemeSelector';
 import ImagePicker from './ImagePicker';
 import { getUserPrayerLimits } from '../../../../../execution/original_prayers_repository';
 
-export default async function CreateOriginalPrayerPage() {
+export default async function CreateOriginalPrayerPage({
+  searchParams,
+}: {
+  searchParams: { error?: string };
+}) {
   const limits = await getUserPrayerLimits();
+  const error = searchParams.error;
 
   return (
     <div className="flex flex-col h-full bg-[#fbf9f5] w-full min-h-screen pb-32">
@@ -24,6 +29,21 @@ export default async function CreateOriginalPrayerPage() {
       <div className="p-6 flex-1 flex flex-col gap-6 w-full max-w-md mx-auto">
         <form action={createPrayerAction} encType="multipart/form-data" className="flex flex-col gap-6 w-full">
           
+          {/* Error Message */}
+          {error && (
+            <div className="bg-[#ba1a1a]/10 border border-[#ba1a1a]/20 rounded-xl p-4 flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-[#ba1a1a] flex-shrink-0 mt-0.5" />
+              <div className="flex flex-col gap-0.5">
+                <span className="text-sm font-sans font-bold text-[#ba1a1a]">Erro ao publicar</span>
+                <span className="text-xs font-sans text-[#ba1a1a]/90">
+                  {error === 'limit' 
+                    ? 'Você atingiu o limite de orações disponíveis.' 
+                    : 'Erro de Banco de Dados. Lembre-se de rodar a correção de restrição de constraint se aplicável.'}
+                </span>
+              </div>
+            </div>
+          )}
+
           {/* Status Bar */}
           <div className="bg-[#f0eeea] rounded-xl p-3 flex justify-between items-center px-4 border border-[#e4e2de]/60">
             <span className="text-xs font-sans font-bold text-[#727974] uppercase tracking-wider">Orações Criadas</span>
