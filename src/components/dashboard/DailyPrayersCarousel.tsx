@@ -102,13 +102,17 @@ export default function DailyPrayersCarousel({ prayers }: DailyPrayersCarouselPr
               </div>
             </div>
 
-            {/* CTA Button */}
-            <Link href={`/dashboard/original-prayers/${prayer.id}`} className="w-full mt-4 bg-gradient-to-br from-[#042418] to-[#1b3a2c] text-[#ffdea5] font-sans text-xs font-bold uppercase tracking-[0.2em] py-4 rounded-full shadow-md hover:shadow-lg flex items-center justify-center gap-2 active:scale-[0.98] transition-all">
-              <Feather className="w-4 h-4" /> <span>LER ORAÇÃO</span>
-            </Link>
           </div>
         ))}
       </div>
+
+      {/* CTA Button Estático */}
+      <Link 
+        href={`/dashboard/original-prayers/${prayers[activeIndex]?.id}`} 
+        className="w-full mt-4 bg-gradient-to-br from-[#042418] to-[#1b3a2c] text-[#ffdea5] font-sans text-xs font-bold uppercase tracking-[0.2em] py-4 rounded-full shadow-md hover:shadow-lg flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
+      >
+        <Feather className="w-4 h-4" /> <span>LER ORAÇÃO</span>
+      </Link>
 
       {/* Setas de Navegação (Flutuantes) */}
       {prayers.length > 1 && (
