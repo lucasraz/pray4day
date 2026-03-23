@@ -13,20 +13,20 @@ export async function createPrayerChainAction(formData: FormData) {
   const periodicityRaw = formData.get('periodicity') as string;
   const itemsRaw = formData.get('items') as string;
 
-  if (!title || !start_date || !execution_time || !periodicityRaw || !itemsRaw) {
-    console.error('Campos obrigatórios faltando');
-    return;
+  if (!title || !start_date || !execution_time || !periodicityRaw) {
+    console.error('Campos obrigatórios faltando:', { title, start_date, execution_time, periodicityRaw });
+    redirect('/dashboard/prayer-chains/create?error=campos');
   }
 
   let periodicity: string[];
-  let items: any[];
+  let items: any[] = [];
 
   try {
     periodicity = JSON.parse(periodicityRaw);
-    items = JSON.parse(itemsRaw);
+    if (itemsRaw) items = JSON.parse(itemsRaw);
   } catch (e) {
     console.error('Erro ao parsear dados:', e);
-    return;
+    redirect('/dashboard/prayer-chains/create?error=dados');
   }
 
   try {
@@ -40,9 +40,9 @@ export async function createPrayerChainAction(formData: FormData) {
       periodicity,
       items,
     });
-  } catch (err) {
-    console.error('Erro ao criar corrente:', err);
-    return;
+  } catch (err: any) {
+    console.error('Erro ao criar corrente:', err?.message || err);
+    redirect('/dashboard/prayer-chains/create?error=servidor');
   }
 
   revalidatePath('/dashboard/prayer-chains');

@@ -57,17 +57,18 @@ export async function getPredefinedPrayers(): Promise<PredefinedPrayer[]> {
 
 /**
  * Busca todas as correntes de oração (feed público) com contagem de participantes e nome do criador
+ * NOTA: Usa duas queries porque prayer_chains.user_id referencia auth.users, não public.profiles
  */
 export async function getPrayerChains(): Promise<PrayerChain[]> {
   const supabase = await createClient();
   const { data: userData } = await supabase.auth.getUser();
   const userId = userData.user?.id;
 
+  // 1ª query: correntes com itens e participantes
   const { data, error } = await supabase
     .from('prayer_chains')
     .select(`
       *,
-      profiles!prayer_chains_user_id_fkey (social_name, faith_name, display_name_preference, avatar_url),
       prayer_chain_items (
         id, quantity, order_index,
         predefined_prayer_id, custom_prayer_name,
@@ -83,8 +84,21 @@ export async function getPrayerChains(): Promise<PrayerChain[]> {
     return [];
   }
 
+  // 2ª query: busca perfis dos criadores
+  const creatorIds = [...new Set((data as any[]).map(c => c.user_id))];
+  const { data: profiles } = creatorIds.length > 0
+    ? await supabase
+        .from('profiles')
+        .select('id, social_name, faith_name, display_name_preference, avatar_url')
+        .in('id', creatorIds)
+    : { data: [] };
+
+  const profileMap = Object.fromEntries(
+    (profiles || []).map((p: any) => [p.id, p])
+  );
+
   return (data as any[]).map(chain => {
-    const profile = chain.profiles;
+    const profile = profileMap[chain.user_id];
     const pref = profile?.display_name_preference || 'social';
     const creatorName = (pref === 'faith' && profile?.faith_name)
       ? profile.faith_name
@@ -96,7 +110,6 @@ export async function getPrayerChains(): Promise<PrayerChain[]> {
       creator_avatar: profile?.avatar_url || null,
       participant_count: chain.prayer_chain_participants?.length ?? 0,
       has_joined: userId ? chain.prayer_chain_participants?.some((p: any) => p.user_id === userId) : false,
-      profiles: undefined,
       prayer_chain_participants: undefined,
     };
   }) as PrayerChain[];
