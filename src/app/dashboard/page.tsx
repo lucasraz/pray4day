@@ -16,6 +16,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 import { getDailyPrayer } from '../../../execution/original_prayers_repository'
+import { getDailyVerse } from '../../../execution/verses_repository'
+import VerseCard from '@/components/dashboard/VerseCard'
 import { createClient } from '@/lib/supabase/server'
 
 export default async function DashboardPage() {
@@ -36,6 +38,9 @@ export default async function DashboardPage() {
 
   // Oração do Dia: seleção determinística por usuário e data
   const dailyPrayer = user ? await getDailyPrayer(user.id) : null;
+  
+  // Versículo do Dia
+  const dailyVerse = user ? await getDailyVerse() : null;
 
   return (
     <div className="flex flex-col min-h-full pb-28">
@@ -178,18 +183,7 @@ export default async function DashboardPage() {
         </Link>
 
         {/* Bottom Card: Versículo do Dia */}
-        <div className="bg-[#ffffff] border border-[#c1c8c2]/20 rounded-2xl p-5 flex items-center justify-between shadow-sm cursor-pointer hover:shadow-md transition-all duration-300 mb-6">
-          <div className="flex items-center gap-4">
-            <div className="bg-[#f5f3ef] p-3 rounded-xl">
-              <BookOpen className="w-5 h-5 text-[#775a19]" />
-            </div>
-            <div className="flex flex-col gap-0.5">
-              <span className="text-[#042418] text-base font-['Newsreader',serif] font-medium leading-none">Versículo do Dia</span>
-              <span className="text-[#727974] text-[11px] font-['Manrope',sans-serif] font-semibold uppercase tracking-wider">Receber mensagem</span>
-            </div>
-          </div>
-          <ChevronRight className="w-5 h-5 text-[#c1c8c2]" />
-        </div>
+        <VerseCard verse={dailyVerse} />
       </div>
     </div>
   )
