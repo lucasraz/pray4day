@@ -48,79 +48,91 @@ export default async function OriginalPrayerDetailsPage({
         </div>
 
         {/* Action Controls */}
-        <div className="flex flex-col gap-4 mt-4">
-          <div className="flex justify-between items-center bg-white border border-[#e4e2de]/30 rounded-2xl p-4 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="bg-[#f0eeea] p-2.5 rounded-full">
-                <Heart className={`w-5 h-5 ${prayer.has_liked ? 'fill-[#ba1a1a] text-[#ba1a1a]' : 'text-[#727974]'}`} />
+        <div className="flex flex-col bg-white border border-[#e4e2de]/30 rounded-3xl shadow-sm mt-4 overflow-hidden">
+          
+          {/* Top Info Area & Author Context */}
+          <div className="flex justify-between items-center p-5 border-b border-[#e4e2de]/30 bg-[#fbf9f5]/50">
+            <div className="flex items-center gap-4">
+              <div className="bg-white border border-[#e4e2de]/60 p-3 rounded-full shadow-sm">
+                <Heart className={`w-6 h-6 ${prayer.has_liked ? 'fill-[#ba1a1a] text-[#ba1a1a]' : 'text-[#727974]'}`} />
               </div>
               <div className="flex flex-col">
                 <span className="text-[#042418] text-sm font-sans font-bold">Votos de fé</span>
-                <span className="text-[#727974] text-xs font-sans">
+                <span className="text-[#727974] text-sm font-sans">
                   {prayer.likes_count === 1 ? '1 pessoa orou' : `${prayer.likes_count || 0} pessoas oraram`}
                 </span>
               </div>
             </div>
 
-            <div className="flex gap-2">
-              {/* Creator Controls */}
-              {prayer.is_author && (
-                <>
-                  <Link 
-                    href={`/dashboard/original-prayers/${prayer.id}/edit`}
-                    className="flex items-center justify-center p-2 rounded-full border border-[#e4e2de] text-[#727974] hover:bg-[#f5f3ef] hover:text-[#042418] transition-all"
-                  >
-                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                    </svg>
-                  </Link>
+            {/* Creator Controls (Floating Right Box) */}
+            {prayer.is_author && (
+              <div className="flex gap-2">
+                <Link 
+                  href={`/dashboard/original-prayers/${prayer.id}/edit`}
+                  className="flex items-center justify-center p-2.5 rounded-full border border-[#e4e2de] text-[#727974] bg-white hover:bg-[#f5f3ef] hover:text-[#042418] shadow-sm transition-all"
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>
+                </Link>
 
-                  <form action={async (formData) => {
-                    'use server'
-                    const { deleteOriginalPrayerAction } = await import('../actions')
-                    await deleteOriginalPrayerAction(formData)
-                  }}>
-                     <input type="hidden" name="prayerId" value={prayer.id} />
-                     <button type="submit" className="flex items-center justify-center p-2 rounded-full border border-[#ffe4e4] bg-[#ffe4e4]/30 text-[#ba1a1a] hover:bg-[#ffe4e4] transition-all" title="Excluir Oração">
-                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="3 6 5 6 21 6"></polyline>
-                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                        </svg>
-                     </button>
-                  </form>
-                </>
-              )}
-              <form action={favoritePrayerAction}>
-                 <input type="hidden" name="prayerId" value={prayer.id} />
-                 <button 
-                   type="submit" 
-                   className={`flex items-center gap-2 px-3 py-2 rounded-full text-xs font-bold transition-all border ${
-                     prayer.has_favorited 
-                       ? 'bg-[#ffe4e4] border-[#ba1a1a]/30 text-[#ba1a1a] hover:bg-[#ffcdcd]' 
-                       : 'bg-white border-[#e4e2de] text-[#775a19] hover:bg-[#f5f3ef]'
-                   }`}
-                 >
-                   <Star className={`w-4 h-4 ${prayer.has_favorited ? 'fill-[#ba1a1a]' : ''}`} />
-                   {prayer.has_favorited ? 'Favorito' : 'Salvar'}
-                 </button>
-              </form>
-              <form action={likePrayerAction}>
-                 <input type="hidden" name="prayerId" value={prayer.id} />
-                 <button 
-                   type="submit" 
-                   className={`px-4 py-2 rounded-full text-xs font-bold transition-all border border-transparent ${
-                     prayer.has_liked 
-                       ? 'bg-[#ffe4e4] text-[#ba1a1a] hover:bg-[#ffcdcd]' 
-                       : 'bg-[#e4e2de]/40 text-[#1b1c1a] border-[#e4e2de]/0 hover:bg-[#e4e2de]/60'
-                   }`}
-                 >
-                   {prayer.has_liked ? 'Retirar Voto' : 'Orar Junto'}
-                 </button>
-              </form>
-            </div>
+                <form action={async (formData) => {
+                  'use server'
+                  const { deleteOriginalPrayerAction } = await import('../actions')
+                  await deleteOriginalPrayerAction(formData)
+                }}>
+                   <input type="hidden" name="prayerId" value={prayer.id} />
+                   <button type="submit" className="flex items-center justify-center p-2.5 rounded-full border border-[#ffe4e4] bg-[#ffe4e4]/30 text-[#ba1a1a] hover:bg-[#ffe4e4] shadow-sm transition-all" title="Excluir Oração">
+                      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                      </svg>
+                   </button>
+                </form>
+              </div>
+            )}
           </div>
 
+          {/* Social Interactions Bar */}
+          <div className="flex p-4 gap-3 bg-white items-center">
+            {/* Salvar (Favorito) */}
+            <form action={favoritePrayerAction} className="flex-1">
+               <input type="hidden" name="prayerId" value={prayer.id} />
+               <button 
+                 type="submit" 
+                 className={`w-full flex justify-center items-center gap-2 px-3 py-3.5 rounded-2xl text-sm font-bold transition-all border shadow-sm active:scale-[0.98] ${
+                   prayer.has_favorited 
+                     ? 'bg-[#ffe4e4] border-[#ba1a1a]/30 text-[#ba1a1a] hover:bg-[#ffcdcd]' 
+                     : 'bg-white border-[#e4e2de] text-[#775a19] hover:bg-[#f5f3ef]'
+                 }`}
+               >
+                 <Star className={`w-5 h-5 ${prayer.has_favorited ? 'fill-[#ba1a1a]' : ''}`} />
+                 <span>{prayer.has_favorited ? 'Favorito' : 'Salvar'}</span>
+               </button>
+            </form>
+
+            {/* Votar (Orar Junto) */}
+            <form action={likePrayerAction} className="flex-[1.3]">
+               <input type="hidden" name="prayerId" value={prayer.id} />
+               <button 
+                 type="submit" 
+                 className={`w-full flex justify-center items-center gap-2 px-3 py-3.5 rounded-2xl text-sm font-bold transition-all border border-transparent shadow-sm active:scale-[0.98] ${
+                   prayer.has_liked 
+                     ? 'bg-[#ffe4e4] text-[#ba1a1a] hover:bg-[#ffcdcd]' 
+                     : 'bg-gradient-to-br from-[#042418] to-[#1b3a2c] text-white hover:shadow-md'
+                 }`}
+               >
+                 <Heart className={`w-5 h-5 ${prayer.has_liked ? 'fill-[#ba1a1a]' : 'text-white'}`} />
+                 <span>{prayer.has_liked ? 'Retirar Voto' : 'Orar Junto'}</span>
+               </button>
+            </form>
+          </div>
+
+        </div>
+
+        {/* Áudio e YouTube */}
+        <div className="flex flex-col gap-4">
           {/* Audio Player (if available) */}
           {prayer.audio_url ? (
             <div className="bg-[#f5f3ef] border border-[#e4e2de]/60 rounded-2xl p-4 shadow-sm flex flex-col gap-2">
