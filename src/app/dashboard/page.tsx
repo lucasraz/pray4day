@@ -10,6 +10,7 @@ import {
   ChevronRight,
   BookOpen,
   User,
+  Link2,
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -128,8 +129,22 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Bottom Card: Versículo do Dia (The Digital Sanctuary stacking card) */}
-        <div className="bg-[#ffffff] border border-[#c1c8c2]/20 rounded-2xl p-5 flex items-center justify-between shadow-sm cursor-pointer hover:shadow-md transition-all duration-300 mt-4 mb-6">
+        {/* Correntes de Oração */}
+        <Link href="/dashboard/prayer-chains" className="bg-gradient-to-br from-[#042418] to-[#1b3a2c] rounded-2xl p-5 flex items-center justify-between shadow-sm hover:shadow-md transition-all duration-300 mt-4 active:scale-[0.98]">
+          <div className="flex items-center gap-4">
+            <div className="bg-white/10 p-3 rounded-xl">
+              <Link2 className="w-5 h-5 text-[#ffdea5]" />
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-white text-base font-['Newsreader',serif] font-medium leading-none">Correntes de Oração</span>
+              <span className="text-white/60 text-[11px] font-['Manrope',sans-serif] font-semibold uppercase tracking-wider">Ore junto com a comunidade</span>
+            </div>
+          </div>
+          <ChevronRight className="w-5 h-5 text-white/40" />
+        </Link>
+
+        {/* Bottom Card: Versículo do Dia */}
+        <div className="bg-[#ffffff] border border-[#c1c8c2]/20 rounded-2xl p-5 flex items-center justify-between shadow-sm cursor-pointer hover:shadow-md transition-all duration-300 mb-6">
           <div className="flex items-center gap-4">
             <div className="bg-[#f5f3ef] p-3 rounded-xl">
               <BookOpen className="w-5 h-5 text-[#775a19]" />
