@@ -62,22 +62,20 @@ export default async function DashboardPage() {
           <Search className="w-5 h-5 text-[#1b1c1a] hover:text-[#727974] cursor-pointer" />
         </div>
 
-        {/* Fileira 2: Saudação com Avatar */}
-        <Link href="/dashboard/profile" className="flex items-center gap-2.5 px-5 py-2.5 group">
-          <div className="w-8 h-8 bg-gradient-to-br from-[#042418] to-[#1b3a2c] rounded-full overflow-hidden border border-[#e4e2de]/60 shadow-sm group-hover:scale-105 transition-all flex-shrink-0">
+        {/* Fileira 2: Saudação centralizada */}
+        <Link href="/dashboard/profile" className="flex flex-col items-center gap-1 px-5 pb-3 pt-1 group">
+          <div className="w-7 h-7 bg-gradient-to-br from-[#042418] to-[#1b3a2c] rounded-full overflow-hidden border border-[#e4e2de]/60 shadow-sm group-hover:scale-105 transition-all flex-shrink-0">
             {profile?.avatar_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={profile.avatar_url} alt="Foto de perfil" className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
-                <User className="w-3.5 h-3.5 text-white" />
+                <User className="w-3 h-3 text-white" />
               </div>
             )}
           </div>
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-[10px] uppercase text-[#727974] font-sans font-bold tracking-wider">Bem-vindo(a),</span>
-            <span className="text-sm font-sans font-bold text-[#042418] truncate max-w-[160px]">{displayName}</span>
-          </div>
+          <span className="text-[9px] uppercase text-[#727974] font-sans font-bold tracking-widest leading-none">Bem-vindo(a)</span>
+          <span className="text-sm font-sans font-bold text-[#042418] leading-none truncate max-w-[200px]">{displayName}</span>
         </Link>
 
       </div>
