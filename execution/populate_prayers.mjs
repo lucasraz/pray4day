@@ -114,6 +114,17 @@ async function main() {
     return;
   }
 
+  // Limpa orações anteriores do usuário para evitar duplicatas e nulos
+  console.log('⏳ Limpando orações anteriores do usuário...');
+  const { error: deleteError } = await supabase
+    .from('original_prayers')
+    .delete()
+    .eq('user_id', userId);
+
+  if (deleteError) {
+    console.warn('⚠️ Nota: Não foi possível limpar a tabela:', deleteError.message);
+  }
+
   // Insere em lotes
   const batchSize = 10;
   for (let i = 0; i < prayersToInsert.length; i += batchSize) {

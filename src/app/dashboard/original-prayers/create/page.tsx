@@ -38,7 +38,11 @@ export default async function CreateOriginalPrayerPage({
                 <span className="text-xs font-sans text-[#ba1a1a]/90">
                   {error === 'limit' 
                     ? 'Você atingiu o limite de orações disponíveis.' 
-                    : 'Erro de Banco de Dados. Lembre-se de rodar a correção de restrição de constraint se aplicável.'}
+                    : error === 'title_long'
+                    ? 'O título é muito longo (máximo de 100 caracteres).'
+                    : error === 'content_long'
+                    ? 'O texto da oração é muito longo (máximo de 5000 caracteres).'
+                    : 'Erro de Banco de Dados ou Limite atingido.'}
                 </span>
               </div>
             </div>

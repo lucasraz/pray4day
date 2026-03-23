@@ -36,6 +36,10 @@ export async function createPrayerAction(formData: FormData) {
   let image_url: string | undefined = undefined;
 
   try {
+    // 🛡️ Blindagem contra Spam / Payload excessivo
+    if (title.length > 100) throw new Error('TITLE_TOO_LONG');
+    if (content.length > 5000) throw new Error('CONTENT_TOO_LONG');
+
     const { createClient } = await import('@/lib/supabase/server');
     const supabase = await createClient();
     const { data: userData } = await supabase.auth.getUser();
@@ -78,6 +82,12 @@ export async function createPrayerAction(formData: FormData) {
     console.error('Error creating prayer:', err);
     
     // Redireciona com erro para o form ler e dar feedback
+    if (err?.message === 'TITLE_TOO_LONG') {
+      redirect('/dashboard/original-prayers/create?error=title_long');
+    }
+    if (err?.message === 'CONTENT_TOO_LONG') {
+      redirect('/dashboard/original-prayers/create?error=content_long');
+    }
     if (err?.message === 'PAYWALL_LIMIT_REACHED') {
       redirect('/dashboard/original-prayers/create?error=limit');
     }
