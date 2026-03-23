@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createOriginalPrayer, toggleLikeOriginalPrayer, toggleFavoriteActionLogic } from '../../../../execution/original_prayers_repository';
+import { addCommentToPrayer } from '../../../../execution/comments_repository';
 
 export async function likePrayerAction(formData: FormData) {
   const prayerId = formData.get('prayerId') as string;
@@ -110,6 +111,20 @@ export async function favoritePrayerAction(formData: FormData) {
 
   revalidatePath(`/dashboard/original-prayers/${prayerId}`);
   revalidatePath('/dashboard/original-prayers');
+  redirect(`/dashboard/original-prayers/${prayerId}`);
+}
+
+export async function addCommentAction(prayerId: string, content: string) {
+  if (!prayerId || !content.trim()) return { error: 'Conteúdo vazio' };
+
+  const { addCommentToPrayer } = await import('../../../../execution/comments_repository');
+  const result = await addCommentToPrayer(prayerId, content);
+  
+  if (!result.error) {
+    revalidatePath('/dashboard');
+    revalidatePath(`/dashboard/original-prayers/${prayerId}`);
+  }
+  return result;
 }
 
 export async function deleteOriginalPrayerAction(formData: FormData) {

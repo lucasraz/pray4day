@@ -3,8 +3,10 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Heart, Feather, ChevronLeft, ChevronRight, MessageCircle } from 'lucide-react';
+import { Heart, Feather, ChevronLeft, ChevronRight, MessageCircle, Sparkles } from 'lucide-react';
 import { OriginalPrayer } from '../../../execution/original_prayers_repository';
+import { CommentItem } from '../../../execution/comments_repository';
+import { addCommentAction } from '../../app/dashboard/original-prayers/actions';
 
 interface DailyPrayersCarouselProps {
   prayers: OriginalPrayer[];
@@ -13,6 +15,43 @@ interface DailyPrayersCarouselProps {
 export default function DailyPrayersCarousel({ prayers }: DailyPrayersCarouselProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Estados para Modal de Comentários
+  const [activeCommentsPrayer, setActiveCommentsPrayer] = useState<OriginalPrayer | null>(null);
+  const [commentsList, setCommentsList] = useState<CommentItem[]>([]);
+  const [newComment, setNewComment] = useState('');
+  const [loadingComments, setLoadingComments] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    if (activeCommentsPrayer) {
+      setLoadingComments(true);
+      import('../../../execution/comments_repository').then(({ getCommentsForPrayer }) => {
+         getCommentsForPrayer(activeCommentsPrayer.id).then((list) => {
+            if (isMounted) {
+               setCommentsList(list);
+               setLoadingComments(false);
+            }
+         });
+      });
+    } else {
+       setCommentsList([]);
+    }
+    return () => { isMounted = false; };
+  }, [activeCommentsPrayer]);
+
+  const handleAddComment = async () => {
+    if (!newComment.trim() || !activeCommentsPrayer) return;
+    const res = await addCommentAction(activeCommentsPrayer.id, newComment);
+    if (res.error === 'PREMIUM_LOCKED') {
+       alert('Comentários são recursos exclusivos para membros Premium! ✨');
+       return;
+    }
+    setNewComment('');
+    import('../../../execution/comments_repository').then(({ getCommentsForPrayer }) => {
+       getCommentsForPrayer(activeCommentsPrayer.id).then(setCommentsList);
+    });
+  };
 
   const handleScroll = () => {
     if (!scrollRef.current) return;
@@ -94,18 +133,19 @@ export default function DailyPrayersCarousel({ prayers }: DailyPrayersCarouselPr
                 </p>
                 {/* Likes e Comentários */}
                 <div className="flex items-center gap-4 mt-3">
-                  {(prayer.likes_count ?? 0) > 0 && (
-                    <div className="flex items-center gap-1.5">
-                      <Heart className="w-3.5 h-3.5 text-[#ffdea5]" fill="#ffdea5" />
-                      <span className="text-[#ffdea5] text-xs font-sans font-bold">{prayer.likes_count}</span>
-                    </div>
-                  )}
-                  {(prayer.comments_count ?? 0) > 0 && (
-                    <div className="flex items-center gap-1.5">
-                      <MessageCircle className="w-3.5 h-3.5 text-white/60" />
-                      <span className="text-white/80 text-xs font-sans font-bold">{prayer.comments_count}</span>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-1.5">
+                    <Heart className="w-3.5 h-3.5 text-[#ffdea5]" fill={prayer.has_liked ? "#ffdea5" : "none"} />
+                    <span className="text-[#ffdea5] text-xs font-sans font-bold">{prayer.likes_count ?? 0}</span>
+                  </div>
+                  
+                  <button 
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setActiveCommentsPrayer(prayer); }}
+                    className="flex items-center gap-1.5 hover:scale-105 active:scale-95 transition-all z-10"
+                    aria-label="Comentar"
+                  >
+                    <MessageCircle className="w-3.5 h-3.5 text-white/60" />
+                    <span className="text-white/80 text-xs font-sans font-bold">{prayer.comments_count ?? 0}</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -163,6 +203,63 @@ export default function DailyPrayersCarousel({ prayers }: DailyPrayersCarouselPr
           ))}
         </div>
       )}
+      {/* 🧾 Modal de Comentários */}
+      {activeCommentsPrayer && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex flex-col justify-end" onClick={() => setActiveCommentsPrayer(null)}>
+          <div className="bg-white rounded-t-[2rem] p-6 w-full max-w-md mx-auto flex flex-col h-[70vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <span className="font-['Newsreader',serif] font-medium text-xl text-[#042418]">Comentários ({commentsList.length})</span>
+              <button onClick={() => setActiveCommentsPrayer(null)} className="p-2 text-[#727974] text-xl">✕</button>
+            </div>
+
+            {/* Lista */}
+            <div className="flex-1 overflow-y-auto flex flex-col gap-4 py-2 pr-1">
+              {loadingComments ? (
+                 <span className="text-sm text-center text-[#727974] py-4">Carregando comentários...</span>
+              ) : commentsList.length === 0 ? (
+                 <div className="flex flex-col items-center justify-center py-12 gap-2 text-[#727974]">
+                    <Sparkles className="w-8 h-8 text-[#c1b89a]" />
+                    <span className="text-sm font-sans">Seja o primeiro a comentar! ✨</span>
+                 </div>
+              ) : (
+                commentsList.map(c => (
+                  <div key={c.id} className="border-b border-[#e4e2de]/40 pb-3 flex flex-col gap-1.5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 bg-gradient-to-br from-[#042418] to-[#1b3a2c] rounded-full flex items-center justify-center overflow-hidden border border-[#e4e2de]/40">
+                        {c.user_avatar ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={c.user_avatar} alt={c.user_name || 'Usuário'} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-white text-[10px] uppercase font-bold">{(c.user_name?.[0] || 'U')}</span>
+                        )}
+                      </div>
+                      <span className="text-xs font-bold font-sans text-[#1b3a2c]">{c.user_name || 'Usuário'}</span>
+                    </div>
+                    <p className="text-sm text-[#424844] font-sans pl-8 leading-relaxed">{c.content}</p>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Input */}
+            <div className="flex items-center gap-2 pt-4 border-t border-[#e4e2de]/60 mt-2">
+              <input 
+                value={newComment}
+                onChange={e => setNewComment(e.target.value)}
+                placeholder="Adicionar comentário..."
+                className="flex-1 bg-[#f5f3ef] rounded-xl px-4 py-2.5 text-sm font-sans focus:outline-none border border-[#e4e2de]/30"
+              />
+              <button 
+                onClick={handleAddComment} 
+                className="bg-[#042418] text-[#ffdea5] px-4 py-2.5 rounded-xl text-xs font-bold font-sans uppercase active:scale-95 transition-all shadow-sm"
+              >
+                 Enviar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
