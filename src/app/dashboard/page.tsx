@@ -2,7 +2,6 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { 
   Heart, 
-  Search, 
   Play, 
   CloudRain, 
   Users, 
@@ -47,19 +46,12 @@ export default async function DashboardPage() {
       {/* Header em duas fileiras */}
       <div className="bg-[#fbf9f5]/95 backdrop-blur-md sticky top-0 z-20 border-b border-[#c1c8c2]/10 shadow-sm">
         
-        {/* Fileira 1: Logo + Lupa */}
-        <div className="flex items-center justify-between px-5 pt-4 pb-1">
-          {/* Espaço vazio para equilibrar a lupa */}
-          <div className="w-8" />
-
-          {/* Logo centralizada */}
+        {/* Fileira 1: Logo centralizada */}
+        <div className="flex items-center justify-center px-5 pt-4 pb-1">
           <div className="flex flex-col items-center justify-center">
             <span className="material-symbols-outlined text-[#042418] text-xl leading-none" style={{ fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>spa</span>
             <span className="text-[1.25rem] font-['Newsreader',serif] font-medium italic text-[#1b3a2c] tracking-tight leading-none">Pray for Day</span>
           </div>
-
-          {/* Lupa */}
-          <Search className="w-5 h-5 text-[#1b1c1a] hover:text-[#727974] cursor-pointer" />
         </div>
 
         {/* Fileira 2: Saudação centralizada */}
