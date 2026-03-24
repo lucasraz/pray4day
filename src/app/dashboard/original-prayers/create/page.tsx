@@ -52,7 +52,7 @@ export default async function CreateOriginalPrayerPage({
           <div className="bg-[#f0eeea] rounded-xl p-3 flex justify-between items-center px-4 border border-[#e4e2de]/60">
             <span className="text-xs font-sans font-bold text-[#727974] uppercase tracking-wider">Orações Criadas</span>
             <span className={`text-sm font-bold ${limits.canCreate ? 'text-[#042418]' : 'text-[#ba1a1a]'}`}>
-              {limits.count} / {limits.maxLimit}
+              {limits.count} / {limits.maxLimit === Infinity ? '∞' : limits.maxLimit}
             </span>
           </div>
 

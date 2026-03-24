@@ -183,8 +183,8 @@ export async function createOriginalPrayer(payload: {
     .select('*', { count: 'exact', head: true })
     .eq('user_id', userData.user.id);
 
-  // 3. Travar regra de negócios do Paywall/Plano Premium (Max 3 Free, Max 10 Pro)
-  const maxLimit = isPremium ? 10 : 3;
+  // 3. Travar regra de negócios do Paywall/Plano Premium (Max 10 Free, Ilimitadas Pro)
+  const maxLimit = isPremium ? Infinity : 10;
 
   if (count !== null && count >= maxLimit) {
     if (!isPremium) {
@@ -267,7 +267,7 @@ export async function getUserPrayerLimits() {
     .select('*', { count: 'exact', head: true })
     .eq('user_id', userData.user.id);
 
-  const maxLimit = isPremium ? 10 : 3;
+  const maxLimit = isPremium ? Infinity : 10;
   const currentCount = count || 0;
 
   return {
