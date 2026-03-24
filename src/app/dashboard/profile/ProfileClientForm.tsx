@@ -13,6 +13,7 @@ interface ProfileClientFormProps {
 export default function ProfileClientForm({ profile, user, states, updateProfileAction }: ProfileClientFormProps) {
   const [displayPref, setDisplayPref] = useState(profile?.display_name_preference || 'social');
   const [previewUrl, setPreviewUrl] = useState<string | null>(profile?.avatar_url || null);
+  const [selectedThemes, setSelectedThemes] = useState<string[]>(profile?.selected_themes || ['Ansiedade', 'Família', 'Prosperidade', 'Provação']);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [socialName, setSocialName] = useState(profile?.social_name || user?.user_metadata?.first_name || '');
@@ -141,6 +142,54 @@ export default function ProfileClientForm({ profile, user, states, updateProfile
               </label>
             </div>
             <p className="text-[#727974] text-xs font-sans">Este nome aparece no seu dashboard e para outras pessoas</p>
+          </div>
+
+          {/* 🎯 Seleção de Temas Favoritos */}
+          <div className="flex flex-col gap-2 pt-3 border-t border-[#e4e2de]/30 mt-1">
+            <span className="text-sm font-sans font-bold text-[#042418]">Atalhos no Dashboard <span className="text-xs text-[#727974]">(Selecione até 4)</span></span>
+            <div className="grid grid-cols-2 gap-2 mt-1">
+              {[
+                { label: 'Ansiedade' },
+                { label: 'Família'  },
+                { label: 'Prosperidade'  },
+                { label: 'Provação'  },
+                { label: 'Saúde'  },
+                { label: 'Casamento' },
+                { label: 'Trabalho' },
+                { label: 'Finanças' }
+              ].map(({ label }) => {
+                 const isSelected = selectedThemes.includes(label);
+                 const handleToggle = () => {
+                     if (isSelected) {
+                         if (selectedThemes.length > 1) {
+                             setSelectedThemes(selectedThemes.filter(t => t !== label));
+                         } else {
+                             alert('Selecione pelo menos 1 atalho!');
+                         }
+                     } else {
+                         if (selectedThemes.length < 4) {
+                             setSelectedThemes([...selectedThemes, label]);
+                         } else {
+                             alert('No máximo 4 atalhos!');
+                         }
+                     }
+                 };
+                 return (
+                    <div 
+                      key={label} 
+                      onClick={handleToggle}
+                      className={`flex items-center justify-center p-3 rounded-xl border cursor-pointer transition-all text-sm font-sans font-bold ${
+                        isSelected 
+                          ? 'bg-[#042418] text-white border-[#042418]' 
+                          : 'bg-[#f5f3ef] text-[#727974] border-[#e4e2de] hover:bg-[#e4e2de]'
+                      }`}
+                    >
+                      {label}
+                    </div>
+                 )
+              })}
+            </div>
+            <input type="hidden" name="selected_themes" value={JSON.stringify(selectedThemes)} />
           </div>
 
           <div className="flex gap-3">

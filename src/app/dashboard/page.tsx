@@ -31,7 +31,7 @@ export default async function DashboardPage() {
     user
       ? supabase
           .from('profiles')
-          .select('social_name, faith_name, avatar_url, display_name_preference')
+          .select('social_name, faith_name, avatar_url, display_name_preference, selected_themes')
           .eq('id', user.id)
           .single()
       : Promise.resolve({ data: null }),
@@ -117,19 +117,34 @@ export default async function DashboardPage() {
           <h2 className="text-lg font-['Newsreader',serif] font-medium text-[#042418] text-center w-full">Orações por Temas</h2>
           
           <div className="grid grid-cols-4 gap-3">
-            {[
-              { Icon: CloudRain, label: 'Ansiedade' },
-              { Icon: Users, label: 'Família' },
-              { Icon: Sparkles, label: 'Prosperidade' },
-              { Icon: ShieldAlert, label: 'Provação' }
-            ].map(({ Icon, label }, index) => (
-              <div key={index} className="flex flex-col items-center gap-2 group cursor-pointer transition-all">
-                <div className="w-[4.5rem] h-[4.5rem] rounded-2xl border border-[#c1c8c2]/20 bg-[#f5f3ef] shadow-sm group-hover:bg-[#ffffff] transition-all duration-300 flex items-center justify-center relative">
-                  <Icon className="w-6 h-6 text-[#775a19] transition-transform duration-300 group-hover:scale-110" />
-                </div>
-                <span className="text-[#424844] text-[10px] font-bold font-['Manrope',sans-serif] uppercase tracking-wider">{label}</span>
-              </div>
-            ))}
+            {(() => {
+              const themeIcons: Record<string, any> = {
+                'Ansiedade': CloudRain, 'Família': Users, 'Prosperidade': Sparkles, 'Provação': ShieldAlert,
+                'Saúde': Heart, 'Casamento': Heart, 'Trabalho': BookOpen, 'Finanças': ShieldAlert
+              };
+
+              const dashboardThemes = (profile?.selected_themes && profile.selected_themes.length > 0)
+                ? profile.selected_themes.map((t: string) => ({ label: t, Icon: themeIcons[t] || Heart }))
+                : [
+                     { Icon: CloudRain, label: 'Ansiedade' },
+                     { Icon: Users, label: 'Família' },
+                     { Icon: Sparkles, label: 'Prosperidade' },
+                     { Icon: ShieldAlert, label: 'Provação' }
+                  ];
+
+              return dashboardThemes.map(({ Icon, label }: any, index: number) => (
+                <Link 
+                  key={index} 
+                  href={`/dashboard/original-prayers?theme=${encodeURIComponent(label)}`}
+                  className="flex flex-col items-center gap-2 group cursor-pointer transition-all"
+                >
+                  <div className="w-[4.5rem] h-[4.5rem] rounded-2xl border border-[#c1c8c2]/20 bg-[#f5f3ef] shadow-sm group-hover:bg-[#ffffff] transition-all duration-300 flex items-center justify-center relative">
+                    <Icon className="w-6 h-6 text-[#775a19] transition-transform duration-300 group-hover:scale-110" />
+                  </div>
+                  <span className="text-[#424844] text-[10px] font-bold font-['Manrope',sans-serif] uppercase tracking-wider">{label}</span>
+                </Link>
+              ));
+            })()}
           </div>
         </div>
 

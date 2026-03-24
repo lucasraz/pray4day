@@ -10,6 +10,14 @@ export async function updateProfileAction(formData: FormData) {
   const state = formData.get('state') as string;
   const displayNamePreference = formData.get('display_name_preference') as string || 'social';
   const avatarFile = formData.get('avatarFile') as File | null;
+  const selectedThemesJson = formData.get('selected_themes') as string || '[]';
+  
+  let selectedThemes: string[] = [];
+  try {
+    selectedThemes = JSON.parse(selectedThemesJson);
+  } catch (e) {
+    selectedThemes = [];
+  }
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -44,6 +52,7 @@ export async function updateProfileAction(formData: FormData) {
     birth_date: birthDate || null,
     state: state || null,
     display_name_preference: displayNamePreference,
+    selected_themes: selectedThemes,
     updated_at: new Date().toISOString(),
   };
 
