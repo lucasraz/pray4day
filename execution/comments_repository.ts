@@ -7,31 +7,43 @@ import { createClient } from '@/lib/supabase/server';
 export async function getCommentsForPrayer(prayerId: string): Promise<CommentItem[]> {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
+  // 1. Buscar comentários
+  const { data: comments, error: commentsError } = await supabase
     .from('comments_original_prayers')
-    .select(`
-      id,
-      user_id,
-      content,
-      created_at,
-      profiles (social_name, avatar_url)
-    `)
+    .select('id, user_id, content, created_at')
     .eq('prayer_id', prayerId)
     .order('created_at', { ascending: false });
 
-  if (error || !data) {
-    console.error('Erro ao buscar comentários da oração:', error);
+  if (commentsError || !comments) {
+    console.error('Erro ao buscar comentários da oração:', commentsError);
     return [];
   }
 
-  return data.map((c: any) => ({
-    id: c.id,
-    user_id: c.user_id,
-    content: c.content,
-    created_at: c.created_at,
-    user_name: c.profiles?.social_name || 'Usuário',
-    user_avatar: c.profiles?.avatar_url || null,
-  }));
+  if (comments.length === 0) return [];
+
+  // 2. Buscar perfis dos usuários que comentaram
+  const userIds = [...new Set(comments.map(c => c.user_id))];
+  const { data: profiles, error: profilesError } = await supabase
+    .from('profiles')
+    .select('id, social_name, avatar_url')
+    .in('id', userIds);
+
+  if (profilesError) {
+    console.error('Erro ao buscar perfis dos comentários:', profilesError);
+  }
+
+  // 3. Cruzar dados
+  return comments.map((c) => {
+    const p = profiles?.find(p => p.id === c.user_id);
+    return {
+      id: c.id,
+      user_id: c.user_id,
+      content: c.content,
+      created_at: c.created_at,
+      user_name: p?.social_name || 'Usuário',
+      user_avatar: p?.avatar_url || null,
+    };
+  });
 }
 
 /**
@@ -76,31 +88,43 @@ export async function addCommentToPrayer(prayerId: string, content: string) {
 export async function getCommentsForChain(chainId: string): Promise<CommentItem[]> {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
+  // 1. Buscar comentários
+  const { data: comments, error: commentsError } = await supabase
     .from('comments_prayer_chains')
-    .select(`
-      id,
-      user_id,
-      content,
-      created_at,
-      profiles (social_name, avatar_url)
-    `)
+    .select('id, user_id, content, created_at')
     .eq('chain_id', chainId)
     .order('created_at', { ascending: false });
 
-  if (error || !data) {
-    console.error('Erro ao buscar comentários da corrente:', error);
+  if (commentsError || !comments) {
+    console.error('Erro ao buscar comentários da corrente:', commentsError);
     return [];
   }
 
-  return data.map((c: any) => ({
-    id: c.id,
-    user_id: c.user_id,
-    content: c.content,
-    created_at: c.created_at,
-    user_name: c.profiles?.social_name || 'Usuário',
-    user_avatar: c.profiles?.avatar_url || null,
-  }));
+  if (comments.length === 0) return [];
+
+  // 2. Buscar perfis dos usuários que comentaram
+  const userIds = [...new Set(comments.map(c => c.user_id))];
+  const { data: profiles, error: profilesError } = await supabase
+    .from('profiles')
+    .select('id, social_name, avatar_url')
+    .in('id', userIds);
+
+  if (profilesError) {
+    console.error('Erro ao buscar perfis dos comentários:', profilesError);
+  }
+
+  // 3. Cruzar dados
+  return comments.map((c) => {
+    const p = profiles?.find(p => p.id === c.user_id);
+    return {
+      id: c.id,
+      user_id: c.user_id,
+      content: c.content,
+      created_at: c.created_at,
+      user_name: p?.social_name || 'Usuário',
+      user_avatar: p?.avatar_url || null,
+    };
+  });
 }
 
 /**

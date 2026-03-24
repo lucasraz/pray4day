@@ -117,14 +117,20 @@ export async function favoritePrayerAction(formData: FormData) {
 export async function addCommentAction(prayerId: string, content: string) {
   if (!prayerId || !content.trim()) return { error: 'Conteúdo vazio' };
 
-  const { addCommentToPrayer } = await import('../../../../execution/comments_repository');
-  const result = await addCommentToPrayer(prayerId, content);
-  
-  if (!result.error) {
-    revalidatePath('/dashboard');
-    revalidatePath(`/dashboard/original-prayers/${prayerId}`);
+  try {
+    const { addCommentToPrayer } = await import('../../../../execution/comments_repository');
+    const result = await addCommentToPrayer(prayerId, content);
+    
+    if (!result.error) {
+      const { revalidatePath } = await import('next/cache');
+      revalidatePath('/dashboard');
+      revalidatePath(`/dashboard/original-prayers/${prayerId}`);
+    }
+    return result;
+  } catch (err: any) {
+    console.error('addCommentAction crash:', err);
+    return { error: err?.message || 'Erro interno no servidor de comentários' };
   }
-  return result;
 }
 
 export async function deleteOriginalPrayerAction(formData: FormData) {
