@@ -2,6 +2,7 @@ import { getPrayerChains } from '../../../../execution/prayer_chains_repository'
 import { ChevronLeft, Plus, Clock, Calendar, Link2, Users } from 'lucide-react';
 import Link from 'next/link';
 import { Suspense } from 'react';
+import { createClient } from '@/lib/supabase/server';
 import ChainSearchBar from './ChainSearchBar';
 
 const WEEKDAY_LABELS: Record<string, string> = {
@@ -24,21 +25,40 @@ const CATEGORY_COLORS: Record<string, string> = {
 export default async function PrayerChainsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; cat?: string }>;
+  searchParams: Promise<{ q?: string; cat?: string; sort?: string }>;
 }) {
-  const { q = '', cat = '' } = await searchParams;
+  const { q = '', cat = '', sort = '' } = await searchParams;
   const allChains = await getPrayerChains();
 
+  // Pegar userId para filtros "mine" e "joined"
+  const supabase = await createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  const currentUserId = userData.user?.id;
+
   // Filtragem server-side
-  const chains = allChains.filter(chain => {
-    const query = q.toLowerCase();
-    const matchesQuery = !q ||
-      chain.title.toLowerCase().includes(query) ||
-      (chain.purpose || '').toLowerCase().includes(query) ||
-      (chain.creator_name || '').toLowerCase().includes(query);
-    const matchesCategory = !cat || chain.category === cat;
-    return matchesQuery && matchesCategory;
-  });
+  const chains = allChains
+    .filter(chain => {
+      const query = q.toLowerCase();
+      const matchesQuery = !q ||
+        chain.title.toLowerCase().includes(query) ||
+        (chain.purpose || '').toLowerCase().includes(query) ||
+        (chain.creator_name || '').toLowerCase().includes(query);
+      const matchesCategory = !cat || chain.category === cat;
+
+      // Filtro "Minhas" — só correntes do usuário logado
+      if (sort === 'mine' && chain.user_id !== currentUserId) return false;
+      // Filtro "Participando" — só correntes onde o user já aderiu
+      if (sort === 'joined' && !chain.has_joined) return false;
+
+      return matchesQuery && matchesCategory;
+    })
+    .sort((a, b) => {
+      if (sort === 'participants') {
+        return (b.participant_count ?? 0) - (a.participant_count ?? 0);
+      }
+      // Padrão: mais recentes primeiro
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
 
   return (
     <div className="flex flex-col min-h-screen bg-[#fbf9f5] pb-32">
@@ -60,9 +80,9 @@ export default async function PrayerChainsPage({
 
       <div className="flex flex-col gap-4 p-5 max-w-md mx-auto w-full">
 
-        {/* Barra de busca */}
+        {/* Barra de busca + filtros */}
         <Suspense>
-          <ChainSearchBar currentQuery={q} currentCategory={cat} />
+          <ChainSearchBar currentQuery={q} currentCategory={cat} currentSort={sort} />
         </Suspense>
 
         {/* Lista */}
@@ -72,14 +92,14 @@ export default async function PrayerChainsPage({
               <Link2 className="w-9 h-9 text-[#775a19]" />
             </div>
             <h2 className="font-display text-xl font-medium text-[#042418]">
-              {q || cat ? 'Nenhuma corrente encontrada' : 'Nenhuma corrente ativa'}
+              {q || cat || sort ? 'Nenhuma corrente encontrada' : 'Nenhuma corrente ativa'}
             </h2>
             <p className="text-[#727974] font-sans text-sm leading-relaxed">
-              {q || cat
+              {q || cat || sort
                 ? 'Tente outros termos ou limpe o filtro.'
                 : 'Crie uma corrente de oração e convide a comunidade a orar junto!'}
             </p>
-            {!q && !cat && (
+            {!q && !cat && !sort && (
               <Link href="/dashboard/prayer-chains/create"
                 className="mt-2 bg-gradient-to-br from-[#042418] to-[#1b3a2c] text-white font-sans font-bold text-sm px-6 py-3.5 rounded-2xl shadow-md hover:shadow-lg active:scale-[0.98] transition-all">
                 + CRIAR CORRENTE

@@ -19,9 +19,10 @@ export interface OriginalPrayer {
 }
 
 /**
- * Busca todas as orações originais ordenadas por Likes e filtradas.
+ * Busca todas as orações originais com filtros de tema, keyword e ordenação.
+ * sort: 'popular' (likes desc), 'recent' (created_at desc), 'mine' (do usuário logado)
  */
-export async function getOriginalPrayers(filters?: { theme?: string; keyword?: string }) {
+export async function getOriginalPrayers(filters?: { theme?: string; keyword?: string; sort?: string }) {
   const supabase = await createClient();
   
   // 1. Pegar usuário logado para verificar se ele deu like
@@ -45,6 +46,11 @@ export async function getOriginalPrayers(filters?: { theme?: string; keyword?: s
     query = query.or(`title.ilike.%${filters.keyword}%,content.ilike.%${filters.keyword}%`);
   }
 
+  // Filtro "Minhas Orações" — filtra pelo usuário logado
+  if (filters?.sort === 'mine' && currentUserId) {
+    query = query.eq('user_id', currentUserId);
+  }
+
   const { data, error } = await query;
 
   if (error) {
@@ -65,7 +71,14 @@ export async function getOriginalPrayers(filters?: { theme?: string; keyword?: s
     };
   });
 
-  // 4. Ordenar por melhor classificação de likes (Decrescente)
+  // 4. Ordenar conforme o filtro escolhido
+  const sortMode = filters?.sort || 'popular';
+
+  if (sortMode === 'recent' || sortMode === 'mine') {
+    return formattedData.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  }
+
+  // Padrão: popular (por likes decrescente)
   return formattedData.sort((a, b) => (b.likes_count || 0) - (a.likes_count || 0));
 }
 

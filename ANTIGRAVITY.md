@@ -87,6 +87,13 @@ We apply security analysis on every implementation step without exceptions.
     *   Fluxo de edição no Perfil que atualiza e limita até 4 categorias no Dashboard.
     *   Leitura dinâmica com Link-Wrap no Dashboard filtrando por URL Search Params (`?theme=`).
 
+*   **🔍 Filtros Inteligentes (Orações Originais + Correntes de Oração)**:
+    *   **Orações Originais**: Busca por palavra-chave (título/conteúdo) com debounce, pills de tema, e chips de ordenação (Populares/Recentes/Minhas).
+    *   **Correntes de Oração**: Busca textual com debounce, pills de categoria, e chips de ordenação (Recentes/Mais Participantes/Minhas/Participando).
+    *   Componentes client-side `PrayerFilters.tsx` e `ChainSearchBar.tsx` usando URL Search Params para filtragem server-side.
+    *   Testes automatizados: 17 testes cobrindo renderização, navegação, debounce e estado ativo.
+
 ---
 
 *Last Updated: 2026-03-24*
+
