@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Heart, MessageSquare, Play, Sparkles } from 'lucide-react';
+import { Heart, MessageSquare, Play, Sparkles, Volume2, VolumeX, Youtube, VideoOff } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { OriginalPrayer } from '../../../../execution/original_prayers_repository';
@@ -85,11 +85,28 @@ export default function PrayerCardFeed({ prayers, likeAction }: PrayerCardFeedPr
               <span className="text-[10px] uppercase font-bold text-[#775a19] tracking-wide">{prayer.theme}</span>
               <h3 className="font-display font-medium text-lg text-[#042418] hover:underline underline-offset-4 decoration-[#775a19]/40">{prayer.title}</h3>
             </Link>
-            {prayer.audio_url && (
-              <div className="w-8 h-8 rounded-full bg-[#042418] flex items-center justify-center cursor-pointer shadow-md">
-                <Play className="w-3 h-3 fill-white text-white translate-x-[1px]" />
-              </div>
-            )}
+            {/* 🎧📹 Badges de Mídia (Superior Direito) */}
+            <div className="flex items-center gap-1.5 z-10">
+              {prayer.audio_url ? (
+                <div className="p-1.5 rounded-full bg-[#042418]/10 flex items-center justify-center cursor-pointer shadow-sm" title="Áudio disponível">
+                  <Volume2 className="w-3.5 h-3.5 text-[#042418]" />
+                </div>
+              ) : (
+                <div className="p-1.5 rounded-full bg-black/5 flex items-center justify-center" title="Sem áudio">
+                  <VolumeX className="w-3.5 h-3.5 text-black/25" />
+                </div>
+              )}
+
+              {prayer.youtube_url ? (
+                <div className="p-1.5 rounded-full bg-[#042418]/10 flex items-center justify-center cursor-pointer shadow-sm" title="Link/Vídeo disponível">
+                  <Youtube className="w-3.5 h-3.5 text-[#042418]" />
+                </div>
+              ) : (
+                <div className="p-1.5 rounded-full bg-black/5 flex items-center justify-center" title="Sem vídeo">
+                  <VideoOff className="w-3.5 h-3.5 text-black/25" />
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Text Context Content */}

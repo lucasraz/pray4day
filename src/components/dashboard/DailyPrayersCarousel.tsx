@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Heart, Feather, ChevronLeft, ChevronRight, MessageCircle, Sparkles, Trash2 } from 'lucide-react';
+import { Heart, Feather, ChevronLeft, ChevronRight, MessageCircle, Sparkles, Trash2, Volume2, VolumeX, Youtube, VideoOff } from 'lucide-react';
 import { OriginalPrayer } from '../../../execution/original_prayers_repository';
 import { CommentItem } from '../../../execution/comments_types';
 import { getCommentsAction, addCommentAction, deleteCommentAction } from '@/app/dashboard/original-prayers/actions';
@@ -161,6 +161,29 @@ export default function DailyPrayersCarousel({ prayers }: DailyPrayersCarouselPr
                 <span className="bg-white/20 backdrop-blur-sm text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border border-white/20">
                   {prayer.theme}
                 </span>
+              </div>
+
+              {/* 🎧📹 Badges de Mídia (Superior Direito) */}
+              <div className="absolute top-5 right-5 flex items-center gap-1.5">
+                {prayer.audio_url ? (
+                  <div className="p-1.5 rounded-full bg-white/25 backdrop-blur-sm border border-white/20" title="Áudio disponível">
+                    <Volume2 className="w-3.5 h-3.5 text-white" />
+                  </div>
+                ) : (
+                  <div className="p-1.5 rounded-full bg-black/20 backdrop-blur-sm border border-white/5" title="Sem áudio">
+                    <VolumeX className="w-3.5 h-3.5 text-white/30" />
+                  </div>
+                )}
+
+                {prayer.youtube_url ? (
+                  <div className="p-1.5 rounded-full bg-white/25 backdrop-blur-sm border border-white/20" title="Link/Vídeo disponível">
+                    <Youtube className="w-3.5 h-3.5 text-white" />
+                  </div>
+                ) : (
+                  <div className="p-1.5 rounded-full bg-black/20 backdrop-blur-sm border border-white/5" title="Sem vídeo">
+                    <VideoOff className="w-3.5 h-3.5 text-white/30" />
+                  </div>
+                )}
               </div>
 
               {/* Conteúdo */}
