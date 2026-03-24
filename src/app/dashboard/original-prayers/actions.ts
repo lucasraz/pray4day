@@ -77,7 +77,7 @@ export async function createPrayerAction(formData: FormData) {
       content,
       audio_url,
       image_url,
-      youtube_url: youtube_url || undefined,
+      youtube_url: youtube_url || null,
     });
   } catch (err: any) {
     console.error('Error creating prayer:', err);
@@ -198,7 +198,7 @@ export async function updateOriginalPrayerAction(formData: FormData) {
       title,
       theme,
       content,
-      youtube_url: youtube_url || undefined,
+      youtube_url: youtube_url || null,
       image_url
     });
   } catch (err) {

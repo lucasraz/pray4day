@@ -159,7 +159,7 @@ export async function createOriginalPrayer(payload: {
   theme: string;
   content: string;
   audio_url?: string;
-  youtube_url?: string;
+  youtube_url?: string | null;
   image_url?: string;
   duration?: number;
 }) {
@@ -345,7 +345,7 @@ export async function deleteOriginalPrayer(prayerId: string) {
  */
 export async function updateOriginalPrayer(
   prayerId: string, 
-  payload: { title: string; theme: string; content: string; youtube_url?: string; image_url?: string }
+  payload: { title: string; theme: string; content: string; youtube_url?: string | null; image_url?: string }
 ) {
   const supabase = await createClient();
   const { data: userData } = await supabase.auth.getUser();
