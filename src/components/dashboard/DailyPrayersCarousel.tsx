@@ -178,7 +178,7 @@ export default function DailyPrayersCarousel({ prayers }: DailyPrayersCarouselPr
                   </div>
                   
                   <button 
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setActiveCommentsPrayer(prayer); }}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); openComments(prayer); }}
                     className="flex items-center gap-1.5 hover:scale-105 active:scale-95 transition-all z-10"
                     aria-label="Comentar"
                   >
