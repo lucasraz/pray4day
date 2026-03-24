@@ -73,4 +73,20 @@ We apply security analysis on every implementation step without exceptions.
 
 ---
 
-*Last Updated: 2026-03-21*
+## 📌 7. Últimas Funcionalidades Entregues (Milestones)
+
+*   **💬 Sistema de Comentários Premium**:
+    *   Disponível para Orações Originais e Correntes de Oração.
+    *   Gated no Servidor (`comments_repository.ts` + verificação `is_premium`).
+    *   Visualização Instantânea (Optimistic Update) no client.
+    *   Separação de Leituras no server-side para evitar conflitos de `JOIN` com a tabela `auth.users`.
+    *   Regras de Deleção: O autor do comentário **OU** o criador do card/corrente podem excluir mensagens.
+
+*   **🎯 Atalhos de Temas Customizáveis**:
+    *   Campo `selected_themes TEXT[]` adicionado à tabela `profiles`.
+    *   Fluxo de edição no Perfil que atualiza e limita até 4 categorias no Dashboard.
+    *   Leitura dinâmica com Link-Wrap no Dashboard filtrando por URL Search Params (`?theme=`).
+
+---
+
+*Last Updated: 2026-03-24*

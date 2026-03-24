@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Heart, MessageSquare, Play, Sparkles } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { OriginalPrayer } from '../../../../execution/original_prayers_repository';
 import { CommentItem } from '../../../../execution/comments_types';
 import { addCommentAction, getCommentsAction } from './actions';
@@ -67,12 +68,15 @@ export default function PrayerCardFeed({ prayers, likeAction }: PrayerCardFeedPr
         <div key={prayer.id} className="relative bg-white border border-[#e4e2de]/30 rounded-2xl p-4 shadow-sm flex flex-col gap-3 overflow-hidden">
           {/* Imagem de fundo sutil */}
           {prayer.image_url && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img 
-              src={prayer.image_url} 
-              alt="" 
-              className="absolute inset-0 w-full h-full object-cover opacity-[0.08] mix-blend-multiply pointer-events-none" 
-            />
+            <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden">
+              <Image 
+                src={prayer.image_url} 
+                alt="" 
+                fill
+                className="object-cover opacity-[0.08] mix-blend-multiply" 
+                sizes="(max-width: 768px) 100vw, 400px"
+              />
+            </div>
           )}
 
           {/* Top Details */}

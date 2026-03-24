@@ -138,11 +138,12 @@ export default function DailyPrayersCarousel({ prayers }: DailyPrayersCarouselPr
           >
             <div className="relative w-full aspect-[4/4] rounded-[2rem] overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 border border-[#e4e2de]/50 bg-[#042418]">
               {prayer.image_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <Image
                   src={prayer.image_url}
                   alt={prayer.title}
-                  className="absolute inset-0 w-full h-full object-cover opacity-60 transition-opacity duration-300 group-hover:opacity-50"
+                  fill
+                  className="object-cover opacity-60 transition-opacity duration-300 group-hover:opacity-50"
+                  sizes="(max-width: 768px) 100vw, 400px"
                 />
               ) : (
                 <Image
