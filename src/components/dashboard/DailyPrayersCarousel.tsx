@@ -40,14 +40,30 @@ export default function DailyPrayersCarousel({ prayers }: DailyPrayersCarouselPr
 
   const handleAddComment = async () => {
     if (!newComment.trim() || !activeCommentsPrayer) return;
-    const res = await addCommentAction(activeCommentsPrayer.id, newComment);
+    const commentText = newComment.trim();
+    
+    // Adição Instantânea na lista (Instante Update)
+    setCommentsList(prev => [{
+      id: `temp-${Date.now()}`,
+      user_id: 'current',
+      content: commentText,
+      created_at: new Date().toISOString(),
+      user_name: 'Você ✨'
+    }, ...prev]);
+    
+    setNewComment('');
+
+    const res = await addCommentAction(activeCommentsPrayer.id, commentText);
     if (res.error) {
+       // Se deu erro, removemos o comentário instantâneo e alertamos
+       setCommentsList(prev => prev.filter(c => !c.id.startsWith('temp-')));
        alert(res.error === 'PREMIUM_LOCKED' 
          ? 'Comentários são recursos exclusivos para membros Premium! ✨' 
          : `Falha ao comentar: ${res.error}`);
        return;
     }
-    setNewComment('');
+    
+    // Sincronização final
     getCommentsAction(activeCommentsPrayer.id).then(setCommentsList);
   };
 
