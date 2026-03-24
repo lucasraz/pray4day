@@ -3,10 +3,10 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Heart, Feather, ChevronLeft, ChevronRight, MessageCircle, Sparkles } from 'lucide-react';
+import { Heart, Feather, ChevronLeft, ChevronRight, MessageCircle, Sparkles, Trash2 } from 'lucide-react';
 import { OriginalPrayer } from '../../../execution/original_prayers_repository';
 import { CommentItem } from '../../../execution/comments_types';
-import { addCommentAction, getCommentsAction } from '../../app/dashboard/original-prayers/actions';
+import { getCommentsAction, addCommentAction, deleteCommentAction } from '@/app/dashboard/original-prayers/actions';
 
 interface DailyPrayersCarouselProps {
   prayers: OriginalPrayer[];
@@ -21,19 +21,44 @@ export default function DailyPrayersCarousel({ prayers }: DailyPrayersCarouselPr
   const [commentsList, setCommentsList] = useState<CommentItem[]>([]);
   const [newComment, setNewComment] = useState('');
   const [loadingComments, setLoadingComments] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  const openComments = async (prayer: any) => {
+    setActiveCommentsPrayer(prayer);
+    setLoadingComments(true);
+    try {
+      // Carregar usuário logado para autorizar deleções
+      const { createClient } = await import('@/lib/supabase/client');
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) setCurrentUserId(user.id);
+
+      const list = await getCommentsAction(prayer.id);
+      setCommentsList(list);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingComments(false);
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    if (!activeCommentsPrayer) return;
+    const res = await deleteCommentAction(commentId, activeCommentsPrayer.id);
+    if (res.error) {
+       alert(`Falha ao excluir: ${res.error}`);
+    } else {
+       setCommentsList(prev => prev.filter(c => c.id !== commentId));
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
     if (activeCommentsPrayer) {
-      setLoadingComments(true);
-      getCommentsAction(activeCommentsPrayer.id).then((list) => {
-         if (isMounted) {
-            setCommentsList(list);
-            setLoadingComments(false);
-         }
-      });
+      // Comments are now loaded via openComments, so this useEffect only handles cleanup
     } else {
        setCommentsList([]);
+       setCurrentUserId(null); // Clear user ID when comments modal is closed
     }
     return () => { isMounted = false; };
   }, [activeCommentsPrayer]);
@@ -238,16 +263,28 @@ export default function DailyPrayersCarousel({ prayers }: DailyPrayersCarouselPr
               ) : (
                 commentsList.map(c => (
                   <div key={c.id} className="border-b border-[#e4e2de]/40 pb-3 flex flex-col gap-1.5">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 bg-gradient-to-br from-[#042418] to-[#1b3a2c] rounded-full flex items-center justify-center overflow-hidden border border-[#e4e2de]/40">
-                        {c.user_avatar ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={c.user_avatar} alt={c.user_name || 'Usuário'} className="w-full h-full object-cover" />
-                        ) : (
-                          <span className="text-white text-[10px] uppercase font-bold">{(c.user_name?.[0] || 'U')}</span>
-                        )}
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 bg-gradient-to-br from-[#042418] to-[#1b3a2c] rounded-full flex items-center justify-center overflow-hidden border border-[#e4e2de]/40">
+                          {c.user_avatar ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={c.user_avatar} alt={c.user_name || 'Usuário'} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-white text-[10px] uppercase font-bold">{(c.user_name?.[0] || 'U')}</span>
+                          )}
+                        </div>
+                        <span className="text-xs font-bold font-sans text-[#1b3a2c]">{c.user_name || 'Usuário'}</span>
                       </div>
-                      <span className="text-xs font-bold font-sans text-[#1b3a2c]">{c.user_name || 'Usuário'}</span>
+                      
+                      {currentUserId && (currentUserId === c.user_id || currentUserId === activeCommentsPrayer.user_id) && (
+                         <button 
+                           onClick={() => handleDeleteComment(c.id)} 
+                           className="p-1 hover:bg-[#ba1a1a]/10 rounded-full text-[#727974] hover:text-[#ba1a1a] transition-all"
+                           title="Excluir"
+                         >
+                            <Trash2 className="w-3.5 h-3.5" />
+                         </button>
+                      )}
                     </div>
                     <p className="text-sm text-[#424844] font-sans pl-8 leading-relaxed">{c.content}</p>
                   </div>

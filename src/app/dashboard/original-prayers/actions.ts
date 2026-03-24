@@ -133,6 +133,21 @@ export async function addCommentAction(prayerId: string, content: string) {
   }
 }
 
+export async function deleteCommentAction(commentId: string, prayerId: string) {
+  try {
+    const { deleteCommentFromPrayer } = await import('../../../../execution/comments_repository');
+    const result = await deleteCommentFromPrayer(commentId);
+    if (!result.error) {
+       const { revalidatePath } = await import('next/cache');
+       revalidatePath(`/dashboard/original-prayers/${prayerId}`);
+       revalidatePath('/dashboard');
+    }
+    return result;
+  } catch (err: any) {
+    return { error: err.message };
+  }
+}
+
 export async function deleteOriginalPrayerAction(formData: FormData) {
   const prayerId = formData.get('prayerId') as string;
   if (!prayerId) return;

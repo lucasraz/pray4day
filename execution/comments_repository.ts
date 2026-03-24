@@ -162,3 +162,31 @@ export async function addCommentToChain(chainId: string, content: string) {
   if (error) return { error: error.message };
   return { success: true, comment: data };
 }
+
+/**
+ * Deleta um comentário de uma Oração
+ */
+export async function deleteCommentFromPrayer(commentId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from('comments_original_prayers')
+    .delete()
+    .eq('id', commentId);
+
+  if (error) return { error: error.message };
+  return { success: true };
+}
+
+/**
+ * Deleta um comentário de uma Corrente
+ */
+export async function deleteCommentFromChain(commentId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from('comments_prayer_chains')
+    .delete()
+    .eq('id', commentId);
+
+  if (error) return { error: error.message };
+  return { success: true };
+}

@@ -31,6 +31,8 @@ DROP POLICY IF EXISTS "Permitir inserção de comentários por usuários autenti
 DROP POLICY IF EXISTS "Permitir inserção de comentários por usuários autenticados (Correntes)" ON comments_prayer_chains;
 DROP POLICY IF EXISTS "Permitir deleção aos autores (Orações)" ON comments_original_prayers;
 DROP POLICY IF EXISTS "Permitir deleção aos autores (Correntes)" ON comments_prayer_chains;
+DROP POLICY IF EXISTS "Permitir deleção aos autores ou criador do card (Orações)" ON comments_original_prayers;
+DROP POLICY IF EXISTS "Permitir deleção aos autores ou criador da corrente (Correntes)" ON comments_prayer_chains;
 
 -- 5. Criar Políticas de Leitura (Qualquer um autenticado pode ler)
 CREATE POLICY "Permitir leitura pública de comentários de orações" 
@@ -47,9 +49,15 @@ ON comments_original_prayers FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Permitir inserção de comentários por usuários autenticados (Correntes)" 
 ON comments_prayer_chains FOR INSERT WITH CHECK (auth.uid() = user_id);
 
--- 7. Criar Políticas de Deleção (Somente autor do comentário)
-CREATE POLICY "Permitir deleção aos autores (Orações)" 
-ON comments_original_prayers FOR DELETE USING (auth.uid() = user_id);
+-- 7. Criar Políticas de Deleção (Autor do comentário OU Criador do Card)
+CREATE POLICY "Permitir deleção aos autores ou criador do card (Orações)" 
+ON comments_original_prayers FOR DELETE USING (
+  auth.uid() = user_id 
+  OR auth.uid() = (SELECT user_id FROM original_prayers WHERE id = prayer_id)
+);
 
-CREATE POLICY "Permitir deleção aos autores (Correntes)" 
-ON comments_prayer_chains FOR DELETE USING (auth.uid() = user_id);
+CREATE POLICY "Permitir deleção aos autores ou criador da corrente (Correntes)" 
+ON comments_prayer_chains FOR DELETE USING (
+  auth.uid() = user_id 
+  OR auth.uid() = (SELECT user_id FROM prayer_chains WHERE id = chain_id)
+);
