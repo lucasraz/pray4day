@@ -3,6 +3,7 @@ import { Heart, Play, ChevronLeft, Star } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { likePrayerAction, favoritePrayerAction } from '../actions';
+import CommentsSection from '@/components/dashboard/CommentsSection';
 
 export default async function OriginalPrayerDetailsPage({
   params,
@@ -212,8 +213,11 @@ export default async function OriginalPrayerDetailsPage({
               </a>
             );
           })()}
+          </div>
+
+          {/* 💬 Seção de Comentários */}
+          <CommentsSection prayerId={prayer.id} />
         </div>
       </div>
-    </div>
   );
 }

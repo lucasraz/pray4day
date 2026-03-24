@@ -1,4 +1,4 @@
-import { Check, Crown, Music, Heart, Link2, Trophy, ArrowRight } from 'lucide-react';
+import { Check, Crown, Music, Heart, Link2, Trophy, ArrowRight, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
@@ -29,6 +29,13 @@ export default async function PremiumPage() {
       description: 'Crie orações com gravações de até 2min e adicione links do YouTube sem restrições.',
       color: 'from-[#eebd45]/20 to-[#775a19]/5',
       iconColor: 'text-[#eebd45]',
+    },
+    {
+      icon: MessageCircle,
+      title: 'Comentários na Comunidade',
+      description: 'Deixe incentivos de fé e mensagens de apoio nas orações e correntes de outros irmãos.',
+      color: 'from-[#042418]/20 to-[#1b3a2c]/5',
+      iconColor: 'text-[#042418]',
     },
     {
       icon: Heart,

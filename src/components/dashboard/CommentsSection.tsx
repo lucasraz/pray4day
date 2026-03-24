@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { MessageCircle, Sparkles } from 'lucide-react';
-import { getCommentsAction, addCommentAction } from '@/app/dashboard/original-prayers/actions';
-import { getChainCommentsAction, addChainCommentAction } from '@/app/dashboard/prayer-chains/actions';
+import { MessageCircle, Sparkles, Trash2 } from 'lucide-react';
+import { getCommentsAction, addCommentAction, deleteCommentAction } from '@/app/dashboard/original-prayers/actions';
+import { getChainCommentsAction, addChainCommentAction, deleteChainCommentAction } from '@/app/dashboard/prayer-chains/actions';
 import { CommentItem } from '../../../execution/comments_types';
 
 interface CommentsSectionProps {
@@ -15,9 +15,15 @@ export default function CommentsSection({ prayerId, chainId }: CommentsSectionPr
   const [commentsList, setCommentsList] = useState<CommentItem[]>([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   const loadComments = async () => {
     try {
+      const { createClient } = await import('@/lib/supabase/client');
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) setCurrentUserId(user.id);
+
       const list = prayerId 
         ? await getCommentsAction(prayerId)
         : chainId 
@@ -58,6 +64,24 @@ export default function CommentsSection({ prayerId, chainId }: CommentsSectionPr
     }
   };
 
+  const handleDeleteComment = async (commentId: string) => {
+    try {
+      const res = prayerId 
+        ? await deleteCommentAction(commentId, prayerId)
+        : chainId 
+        ? await deleteChainCommentAction(commentId, chainId)
+        : { error: 'ID inválido' };
+
+      if (res.error) {
+         alert(`Falha ao excluir: ${res.error}`);
+      } else {
+         setCommentsList(prev => prev.filter(c => c.id !== commentId));
+      }
+    } catch (e) {
+      console.error('Erro ao deletar', e);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-4 bg-white border border-[#e4e2de]/40 rounded-3xl p-5 shadow-sm mt-4">
       <h2 className="text-xs uppercase font-bold text-[#775a19] tracking-wider mb-2 flex items-center gap-2">
@@ -76,16 +100,27 @@ export default function CommentsSection({ prayerId, chainId }: CommentsSectionPr
         ) : (
           commentsList.map(c => (
             <div key={c.id} className="border-b border-[#e4e2de]/20 pb-2 flex flex-col gap-1">
-              <div className="flex items-center gap-2">
-                <div className="w-5 h-5 bg-gradient-to-br from-[#042418] to-[#1b3a2c] rounded-full flex items-center justify-center overflow-hidden">
-                  {c.user_avatar ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={c.user_avatar} alt={c.user_name || 'Usuário'} className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="text-white text-[9px] font-bold">{(c.user_name?.[0] || 'U')}</span>
-                  )}
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 bg-gradient-to-br from-[#042418] to-[#1b3a2c] rounded-full flex items-center justify-center overflow-hidden">
+                    {c.user_avatar ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={c.user_avatar} alt={c.user_name || 'Usuário'} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-white text-[9px] font-bold">{(c.user_name?.[0] || 'U')}</span>
+                    )}
+                  </div>
+                  <span className="text-xs font-bold font-sans text-[#1b3a2c]">{c.user_name || 'Usuário'}</span>
                 </div>
-                <span className="text-xs font-bold font-sans text-[#1b3a2c]">{c.user_name || 'Usuário'}</span>
+
+                {currentUserId && (currentUserId === c.user_id) && (
+                   <button 
+                     onClick={() => handleDeleteComment(c.id)} 
+                     className="p-1 hover:bg-[#ba1a1a]/10 rounded-full text-[#727974] hover:text-[#ba1a1a] transition-all"
+                   >
+                     <Trash2 className="w-3.5 h-3.5" />
+                   </button>
+                )}
               </div>
               <p className="text-xs text-[#424844] font-sans pl-7 leading-relaxed">{c.content}</p>
             </div>

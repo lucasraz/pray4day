@@ -84,6 +84,20 @@ export async function addChainCommentAction(chainId: string, content: string) {
   }
   return result;
 }
+export async function deleteChainCommentAction(commentId: string, chainId: string) {
+  try {
+    const { deleteCommentFromChain } = await import('../../../../execution/comments_repository');
+    const result = await deleteCommentFromChain(commentId);
+    if (!result.error) {
+       const { revalidatePath } = await import('next/cache');
+       revalidatePath(`/dashboard/prayer-chains/${chainId}`);
+    }
+    return result;
+  } catch (err: any) {
+    return { error: err.message };
+  }
+}
+
 export async function leavePrayerChainAction(formData: FormData) {
   const chainId = formData.get('chainId') as string;
   if (!chainId) return;
