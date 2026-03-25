@@ -67,7 +67,7 @@ export default async function PremiumPage() {
 
       {/* Header */}
       <div className="p-6 flex flex-col items-center text-center gap-3">
-        <div className="p-4 bg-gradient-to-br from-[#042418] to-[#1b3a2c] rounded-3xl shadow-lg transform rotate-3 hover:rotate-0 transition-transform duration-500">
+        <div className="p-4 bg-gradient-to-br from-[#042418] to-[#1b3a2c] rounded-3xl shadow-lg transition-all duration-500">
           <Crown className="w-8 h-8 text-[#eebd45]" fill="#eebd45" />
         </div>
         <h1 className="font-['Newsreader',serif] text-3xl font-medium text-[#042418] mt-2 tracking-tight">

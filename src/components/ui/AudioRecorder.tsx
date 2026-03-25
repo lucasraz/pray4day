@@ -115,8 +115,8 @@ export default function AudioRecorder() {
       {!audioURL ? (
         <div className="flex items-center gap-4 bg-[#f0eeea] border border-[#e4e2de]/60 rounded-xl p-4">
           {countdown !== null ? (
-            <div className="w-12 h-12 rounded-full bg-[#fbf9f5] flex justify-center items-center shadow-inner border border-[#e4e2de]/80">
-              <span className="font-['Newsreader',serif] text-2xl font-bold text-[#042418] animate-ping">{countdown}</span>
+            <div className="flex-shrink-0 w-12 h-12 rounded-full bg-[#fbf9f5] flex justify-center items-center shadow-inner border border-[#e4e2de]/80">
+              <span className="font-['Newsreader',serif] text-2xl font-bold text-[#042418] animate-pulse">{countdown}</span>
             </div>
           ) : isRecording ? (
             <button 
