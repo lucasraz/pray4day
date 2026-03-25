@@ -9,12 +9,12 @@ import PrayerFilters from './PrayerFilters';
 export default async function OriginalPrayersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ theme?: string; keyword?: string; sort?: string }>;
+  searchParams: Promise<{ theme?: string; keyword?: string; sort?: string; hasAudio?: string; hasVideo?: string }>;
 }) {
-  const { theme = '', keyword = '', sort = '' } = await searchParams;
+  const { theme = '', keyword = '', sort = '', hasAudio = '', hasVideo = '' } = await searchParams;
 
   // Buscar dados com filtros aplicados via URL query strings
-  const prayers = await getOriginalPrayers({ theme, keyword, sort });
+  const prayers = await getOriginalPrayers({ theme, keyword, sort, hasAudio, hasVideo });
 
   return (
     <div className="flex flex-col min-h-full pb-32">
@@ -29,7 +29,13 @@ export default async function OriginalPrayersPage({
       <div className="flex flex-col gap-5 px-6 pt-5 flex-1">
         {/* Filtros Inteligentes (Client Component) */}
         <Suspense>
-          <PrayerFilters currentTheme={theme} currentKeyword={keyword} currentSort={sort} />
+          <PrayerFilters 
+            currentTheme={theme} 
+            currentKeyword={keyword} 
+            currentSort={sort} 
+            hasAudio={hasAudio}
+            hasVideo={hasVideo}
+          />
         </Suspense>
 
         {/* Prayers Feed Scroll area */}

@@ -27,10 +27,14 @@ export default function PrayerFilters({
   currentTheme,
   currentKeyword,
   currentSort,
+  hasAudio,
+  hasVideo,
 }: {
   currentTheme: string;
   currentKeyword: string;
   currentSort: string;
+  hasAudio?: string;
+  hasVideo?: string;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -48,6 +52,16 @@ export default function PrayerFilters({
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   }, [pathname, router, searchParams]);
 
+  const toggleParam = useCallback((key: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (params.get(key) === 'true') {
+      params.delete(key);
+    } else {
+      params.set(key, 'true');
+    }
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [pathname, router, searchParams]);
+
   const handleKeywordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
@@ -56,7 +70,7 @@ export default function PrayerFilters({
   };
 
   const activeSort = currentSort || 'popular';
-  const hasActiveFilters = !!currentTheme || !!currentKeyword || !!currentSort;
+  const hasActiveFilters = !!currentTheme || !!currentKeyword || !!currentSort || hasAudio === 'true' || hasVideo === 'true';
 
   return (
     <div className="flex flex-col gap-2.5">
@@ -130,6 +144,29 @@ export default function PrayerFilters({
         })}
         {/* Spacer para dar respiro no final do scroll */}
         <div className="w-1 flex-shrink-0" aria-hidden />
+      </div>
+
+      {/* 🎛️ Filtros de Mídia (Áudio/Vídeo) */}
+      <div className="flex gap-4 px-1 mt-0.5">
+        <label className="flex items-center gap-2 text-xs font-sans font-medium text-[#727974] select-none cursor-pointer group">
+          <input 
+            type="checkbox" 
+            checked={hasAudio === 'true'} 
+            onChange={() => toggleParam('hasAudio')}
+            className="rounded border-[#e4e2de] text-[#042418] focus:ring-[#042418]/10 cursor-pointer w-3.5 h-3.5" 
+          />
+          <span className="group-hover:text-[#042418] transition-colors">Com Áudio</span>
+        </label>
+
+        <label className="flex items-center gap-2 text-xs font-sans font-medium text-[#727974] select-none cursor-pointer group">
+          <input 
+            type="checkbox" 
+            checked={hasVideo === 'true'} 
+            onChange={() => toggleParam('hasVideo')}
+            className="rounded border-[#e4e2de] text-[#042418] focus:ring-[#042418]/10 cursor-pointer w-3.5 h-3.5" 
+          />
+          <span className="group-hover:text-[#042418] transition-colors">Com Vídeo</span>
+        </label>
       </div>
 
       {/* 🗑️ Botão Limpar — linha separada, só aparece quando há filtros */}

@@ -22,7 +22,13 @@ export interface OriginalPrayer {
  * Busca todas as orações originais com filtros de tema, keyword e ordenação.
  * sort: 'popular' (likes desc), 'recent' (created_at desc), 'mine' (do usuário logado)
  */
-export async function getOriginalPrayers(filters?: { theme?: string; keyword?: string; sort?: string }) {
+export async function getOriginalPrayers(filters?: { 
+  theme?: string; 
+  keyword?: string; 
+  sort?: string;
+  hasAudio?: string;
+  hasVideo?: string;
+}) {
   const supabase = await createClient();
   
   // 1. Pegar usuário logado para verificar se ele deu like
@@ -44,6 +50,14 @@ export async function getOriginalPrayers(filters?: { theme?: string; keyword?: s
 
   if (filters?.keyword) {
     query = query.or(`title.ilike.%${filters.keyword}%,content.ilike.%${filters.keyword}%`);
+  }
+
+  if (filters?.hasAudio === 'true') {
+    query = query.not('audio_url', 'is', null);
+  }
+
+  if (filters?.hasVideo === 'true') {
+    query = query.not('youtube_url', 'is', null);
   }
 
   // Filtro "Minhas Orações" — filtra pelo usuário logado
