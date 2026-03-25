@@ -8,8 +8,8 @@ export default function SplashScreen() {
   const [isFading, setIsFading] = useState(false);
 
   useEffect(() => {
-    const fadeTimer = setTimeout(() => setIsFading(true), 2500);
-    const unmountTimer = setTimeout(() => setIsVisible(false), 3000);
+    const fadeTimer = setTimeout(() => setIsFading(true), 1200);
+    const unmountTimer = setTimeout(() => setIsVisible(false), 1500);
 
     return () => {
       clearTimeout(fadeTimer);
@@ -23,19 +23,19 @@ export default function SplashScreen() {
     <>
       <style>{`
         @keyframes scaleIn {
-          from { opacity: 0; transform: scale(0.8); }
+          from { opacity: 0; transform: scale(0.9); }
           to { opacity: 1; transform: scale(1); }
         }
         .animate-scaleIn {
-          animation: scaleIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          animation: scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
       `}</style>
-      <div className={`fixed inset-0 bg-[#fbf9f5] z-[9999] flex flex-col items-center justify-center gap-4 transition-all duration-500 ease-in-out ${
+      <div className={`fixed inset-0 bg-[#fbf9f5] z-[9999] flex flex-col items-center justify-center gap-4 transition-all duration-300 ease-in-out ${
         isFading ? 'opacity-0 scale-95 pointer-events-none' : 'opacity-100 scale-100'
       }`}>
         <div className="flex flex-col items-center gap-4">
-          <div className="p-6 bg-gradient-to-br from-[#042418] to-[#1b3a2c] rounded-3xl shadow-2xl animate-scaleIn">
-            <Heart className="w-12 h-12 text-[#ffdea5]" fill="#ffdea5" />
+          <div className="p-5 bg-gradient-to-br from-[#042418] to-[#1b3a2c] rounded-3xl shadow-2xl animate-scaleIn flex items-center justify-center">
+            <span className="material-symbols-outlined text-[#ffdea5] text-4xl leading-none" style={{ fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 40" }}>spa</span>
           </div>
           <div className="flex flex-col items-center gap-1">
             <h1 className="font-['Newsreader',serif] text-4xl font-medium text-[#042418] tracking-tight">
