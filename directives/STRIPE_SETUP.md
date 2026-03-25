@@ -14,8 +14,8 @@ O desenvolvedor de código gerou tudo pronto no lado do servidor (Checkout, Inte
 4. Clique em **Adicionar Produto** (+ Add Product).
 5. Preencha assim:
    - **Nome:** Pray for Day
-   - **Descrição:** Acesso às ferramentas exclusivas, gravação de +3 orações longas, links do YouTube e Biblioteca de Favoritos.
-   - **Preço (Preço padrão):** R$ 12,90 BRL.
+   - **Descrição:** Acesso às ferramentas exclusivas, comentários colocar links do YouTube, Biblioteca de Favoritos e muito mais.
+   - **Preço (Preço padrão):** R$ 11,90 BRL.
    - **Modelo de Cobrança (Billing Period):** Mensal Recorrente (Recurring / Monthly).
 6. Salve o produto. Na tela do Produto criado, vá na seção de preços e procure o **API ID** e copie-o. Ele de se parecer com `price_1X9z...`
 7. Agora, abra o seu projeto no código `.env.local` e preencha essa chave em:
