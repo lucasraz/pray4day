@@ -27,6 +27,33 @@ export async function GET(req: NextRequest) {
       return NextResponse.redirect(new URL('/dashboard/original-prayers?checkout_simulated=true', req.url));
     }
 
+    // 1. Verificar se já temos stripe_customer_id no perfil
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('stripe_customer_id')
+      .eq('id', userData.user.id)
+      .maybeSingle();
+
+    let stripeCustomerId = profile?.stripe_customer_id;
+
+    // 2. Se não tiver, criar o cliente no Stripe
+    if (!stripeCustomerId) {
+      console.log('Criando cliente no Stripe para:', userData.user.email);
+      const customer = await stripe.customers.create({
+        email: userData.user.email!,
+        metadata: {
+          userId: userData.user.id,
+        },
+      });
+      stripeCustomerId = customer.id;
+
+      // Salvar de volta no banco
+      await supabase
+        .from('profiles')
+        .update({ stripe_customer_id: stripeCustomerId })
+        .eq('id', userData.user.id);
+    }
+
     // Criar uma sessão de Checkout do Stripe (Plano Fé = Mensalidade Recorrente)
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -37,7 +64,7 @@ export async function GET(req: NextRequest) {
           quantity: 1,
         },
       ],
-      customer_email: userData.user.email,
+      customer: stripeCustomerId, // Correção: usar o customer ID existente/criado
       client_reference_id: userData.user.id, // Fundamental para o Webhook saber quem pagou
       success_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3002'}/dashboard/original-prayers?success=true`,
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3002'}/dashboard/original-prayers/create?canceled=true`,
