@@ -1,6 +1,7 @@
 import { Home, Heart, User, Crown } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
+import ProfileCheckRedirect from '@/components/ui/ProfileCheckRedirect';
 
 export default async function DashboardLayout({
   children,
@@ -11,19 +12,24 @@ export default async function DashboardLayout({
   const { data: { user } } = await supabase.auth.getUser();
   
   let isPremium = false;
+  let hasProfile = true;
+
   if (user) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('is_premium')
+      .select('is_premium, social_name')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
+
     isPremium = profile?.is_premium || false;
+    hasProfile = !!profile?.social_name; 
   }
 
   return (
     <div className="min-h-[100dvh] bg-[#fbf9f5] flex flex-col items-center font-['Manrope',sans-serif] relative overflow-hidden w-full">
       {/* Bounded App Container (Mobile viewport limit) */}
       <div className="w-full max-w-md flex flex-col h-full relative text-[#1b1c1a] bg-[#fbf9f5] min-h-[100dvh]">
+        <ProfileCheckRedirect hasProfile={hasProfile} />
         {children}
       </div>
 
