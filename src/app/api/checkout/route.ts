@@ -55,6 +55,8 @@ export async function GET(req: NextRequest) {
     }
 
     // Criar uma sessão de Checkout do Stripe (Plano Fé = Mensalidade Recorrente)
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pray4day.vercel.app';
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       mode: 'subscription',
@@ -66,8 +68,8 @@ export async function GET(req: NextRequest) {
       ],
       customer: stripeCustomerId, // Correção: usar o customer ID existente/criado
       client_reference_id: userData.user.id, // Fundamental para o Webhook saber quem pagou
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3002'}/dashboard/original-prayers?success=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3002'}/dashboard/original-prayers/create?canceled=true`,
+      success_url: `${baseUrl}/dashboard/original-prayers?success=true`,
+      cancel_url: `${baseUrl}/dashboard/original-prayers?canceled=true`,
     });
 
     if (session.url) {
